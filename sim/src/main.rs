@@ -45,12 +45,12 @@ println!("Index of -t string: {}, Path to trace file: {}",index_of_b, path_to_tr
 
 #[allow(non_snake_case)]
 //This dynamically calculates how many BYTES the combined cache is
-fn calculate_cache_size(s: &String, E:&String, b:&String) -> i32{
-    let int_of_s: i32= s.parse().unwrap();
-    let int_of_E: i32= E.parse().unwrap();
-    let int_of_b: i32= b.parse().unwrap();
+fn calculate_cache_size(s: &String, E:&String, b:&String) -> u32{
+    let int_of_s: u32= s.parse().unwrap();
+    let int_of_E: u32= E.parse().unwrap();
+    let int_of_b: u32= b.parse().unwrap();
 
-    let cache_bytes_size = (2_i32.pow(int_of_s.try_into().unwrap())) * (2_i32.pow(int_of_b.try_into().unwrap())) * int_of_E;
+    let cache_bytes_size: u32 = (2_u32.pow(int_of_s)) * (2_u32.pow(int_of_b)) * int_of_E;
 
     cache_bytes_size
 
