@@ -46,15 +46,40 @@ println!("Index of -t string: {}, Path to trace file: {}",index_of_b, path_to_tr
 #[allow(non_snake_case)]
 //This dynamically calculates how many BYTES the combined cache is
 fn calculate_cache_size(s: &String, E:&String, b:&String) -> u32{
-    let int_of_s: u32= s.parse().unwrap();
-    let int_of_E: u32= E.parse().unwrap();
-    let int_of_b: u32= b.parse().unwrap();
+    let int_of_s: u32= s.parse().unwrap(); //This is the amount of Sets 
+    let int_of_E: u32= E.parse().unwrap(); //This is the amount of Cache Lines per set 
+    let int_of_b: u32= b.parse().unwrap(); //This is the block offset (the amount of bits that determine which byte to take from the requested block)
 
     let cache_bytes_size: u32 = (2_u32.pow(int_of_s)) * (2_u32.pow(int_of_b)) * int_of_E;
 
     cache_bytes_size
 
 }
+
+fn make_file_line_seperated_vector(filepath: &str) -> Vec<String>{
+    let file = File::open(filepath).expect("Failed to open file");
+    let reader = BufReader::new(file);
+    let mut vec_of_lines: Vec<String> = vec![];
+    for line in reader.lines(){
+        let line_to_add = line.unwrap();
+        vec_of_lines.push(line_to_add);
+    }
+    return vec_of_lines;
+}
+
+let vector_of_lines = make_file_line_seperated_vector(&path_to_trace);
+let mut count_of_lines = 0;
+let mut vector_of_line_index:Vec<usize> = vec![];
+let mut index_counter = 0;
+
+for line in &vector_of_lines{
+    println!("{}", line);
+}
+
+if value_of_E == "1"{
+    println!("This is a direct mapped cache")
+}
+
 
 let cache_bytes_size = calculate_cache_size(value_of_s, value_of_E, value_of_b);
 
