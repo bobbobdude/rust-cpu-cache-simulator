@@ -4,9 +4,14 @@
 use std::env;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
-
+use std::collections::HashMap;
+ 
+#[macro_use]
+extern crate maplit;
 
 pub fn main() {
+
+    
     
 let args: Vec<String> = env::args().skip(1).collect(); //The skip here stops the executable binary being placed in the output
 
@@ -67,22 +72,65 @@ fn make_file_line_seperated_vector(filepath: &str) -> Vec<String>{
     return vec_of_lines;
 }
 
-let vector_of_lines = make_file_line_seperated_vector(&path_to_trace);
-let mut count_of_lines = 0;
-let mut vector_of_line_index:Vec<usize> = vec![];
-let mut index_counter = 0;
+let my_map: HashMap<&str, &str> = hashmap! {
+    "0" => "0000",
+    "1" => "0001",
+    "2" => "0010",
+    "3" => "0011",
+    "4" => "0100",
+    "5" => "0101",
+    "6" => "0110",
+    "7" => "0111",
+    "8" => "1000",
+    "9" => "1001",
+    "A" => "1010",
+    "B" => "1011",
+    "C" => "1100",
+    "D" => "1101",
+    "E" => "1110",
+    "F" => "1111"
+};
 
-for line in &vector_of_lines{
-    println!("{}", line);
+struct TupleOfTagAndAddress<'a>{
+    tag: &'a str,
+    hex_adress: &'a str
 }
+
+//if first_byte != 32{ remember the below function should only run if this is satisfied 
+
+fn turn_line_sep_vector_into_tuple(line_of_vec: &str)-> TupleOfTagAndAddress{
+    let index_of_comma = line_of_vec.find(",").unwrap_or(line_of_vec.len()); //This tries to find the comma and if it fails it instead returns the length of the string 
+    
+    let line_of_vec_with_size_removed: &str = &line_of_vec[0..index_of_comma];
+    let split_instruction: Vec<&str> = line_of_vec_with_size_removed.split_whitespace().collect();
+    let tag_address = TupleOfTagAndAddress{
+        tag: split_instruction[0],
+        hex_adress: split_instruction[1]
+    };
+    return tag_address;
+}
+
 
 if value_of_E == "1"{
     println!("This is a direct mapped cache")
 }
 
+//fn convert_address_to_binary()
+
 
 let cache_bytes_size = calculate_cache_size(value_of_s, value_of_E, value_of_b);
 
-println!("The size of the cache is {} bytes", cache_bytes_size)
+println!("The size of the cache is {} bytes", cache_bytes_size);
+
+let test_tuple: TupleOfTagAndAddress = turn_line_sep_vector_into_tuple(" L 00602260,4");
+
+println!("The type of address {} and the address {}" ,test_tuple.tag, test_tuple.hex_adress)
+
+/*
+The first byte of the string will be 32 if it is a space, as we are ignoring Instruction addresses (I) and as all of these addresses
+begin without a space:
+
+IGNORE ALL STRINGS FROM THE VECTOR THAT DONT START WITH A BYTE OF 32
+*/
 
 }
