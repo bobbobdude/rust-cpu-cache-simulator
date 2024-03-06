@@ -114,18 +114,24 @@ struct TupleOfTagAndAddress<'a>{
 
 //if first_byte != 32{ remember the below function should only run if this if statement is satisfied as 32 is equivalent to a space 
 
-fn turn_line_sep_vector_into_tuple(line_of_vec: &str)-> TupleOfTagAndAddress{
-    let index_of_comma = line_of_vec.find(",").unwrap_or(line_of_vec.len()); //This tries to find the comma and if it fails it instead returns the length of the string 
+fn turn_line_sep_vector_into_tuple(line_of_vec: &str)-> Result<TupleOfTagAndAddress, &'static str>{
+    let first_byte:i32 = line_of_vec.chars().next().unwrap() as i32;
+    if first_byte == 32{
+        let index_of_comma = line_of_vec.find(",").unwrap_or(line_of_vec.len()); //This tries to find the comma and if it fails it instead returns the length of the string 
+        let line_of_vec_with_size_removed: &str = &line_of_vec[0..index_of_comma];
+        let split_instruction: Vec<&str> = line_of_vec_with_size_removed.split_whitespace().collect();
+        let tag_address = TupleOfTagAndAddress{
+            tag: split_instruction[0],
+            hex_address: split_instruction[1],
+            binary: convert_from_hex_to_binary(split_instruction[1]).unwrap() 
+        };
+        Ok(tag_address)
+    }
+        else{
+            return Err("First character is not a space and therefore it is ignored")
+        }
+    } 
     
-    let line_of_vec_with_size_removed: &str = &line_of_vec[0..index_of_comma];
-    let split_instruction: Vec<&str> = line_of_vec_with_size_removed.split_whitespace().collect();
-    let tag_address = TupleOfTagAndAddress{
-        tag: split_instruction[0],
-        hex_address: split_instruction[1],
-        binary: convert_from_hex_to_binary(split_instruction[1]).unwrap()
-    };
-    return tag_address;
-}
 
 
 if value_of_E == "1"{
@@ -138,10 +144,9 @@ let cache_bytes_size = calculate_cache_size(value_of_s, value_of_E, value_of_b);
 
 println!("The size of the cache is {} bytes", cache_bytes_size);
 
-let test_tuple: TupleOfTagAndAddress = turn_line_sep_vector_into_tuple(" L 00602260,4");
+let test_tuple:TupleOfTagAndAddress= turn_line_sep_vector_into_tuple("L 00602260,4").unwrap();
 
 println!("The type of address {}, and the address {} and the hex address in binary {}" ,test_tuple.tag, test_tuple.hex_address, test_tuple.binary)
-
 /*
 The first byte of the string will be 32 if it is a space, as we are ignoring Instruction addresses (I) and as all of these addresses
 begin without a space:
