@@ -124,7 +124,7 @@ println!("The size of the cache is {} bytes", cache_bytes_size);
 
 let test_tuple: TupleOfTagAndAddress = turn_line_sep_vector_into_tuple(" L 00602260,4");
 
-println!("The type of address {} and the address {}" ,test_tuple.tag, test_tuple.hex_adress)
+println!("The type of the address is {} and the address in hex is {}" ,test_tuple.tag, test_tuple.hex_adress)
 
 /*
 The first byte of the string will be 32 if it is a space, as we are ignoring Instruction addresses (I) and as all of these addresses
