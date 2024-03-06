@@ -72,26 +72,9 @@ fn make_file_line_seperated_vector(filepath: &str) -> Vec<String>{
     return vec_of_lines;
 }
 
-let my_map_of_hex_to_binary: HashMap<char, &str> = hashmap! {
-    '0' => "0000",
-    '1' => "0001",
-    '2' => "0010",
-    '3' => "0011",
-    '4' => "0100",
-    '5' => "0101",
-    '6' => "0110",
-    '7' => "0111",
-    '8' => "1000",
-    '9' => "1001",
-    'A' => "1010",
-    'B' => "1011",
-    'C' => "1100",
-    'D' => "1101",
-    'E' => "1110",
-    'F' => "1111"
-};
 
-fn convert_from_hex_to_binary(hex_address: &str) -> &String{
+fn convert_from_hex_to_binary(hex_address: &str) -> Result<String, &'static str>{ //The function either returns a String or an error (as handled by &'static str) 
+//Just for future reference, the reason you chose a static lifetime is so the error message/string persists for the whole time the program executes as we might need to see at the last second that one of the strings failed to convert to binary
     let my_map_of_hex_to_binary: HashMap<char, String> = hashmap! {
         '0' => "0000".to_string(),
         '1' => "0001".to_string(),
@@ -110,7 +93,7 @@ fn convert_from_hex_to_binary(hex_address: &str) -> &String{
         'E' => "1110".to_string(),
         'F' => "1111".to_string()
     };
-    let mut binary = String::new;
+    let mut binary = String::new();
     for number in hex_address.chars(){
         if let Some(converted_value_of_single_character) =  my_map_of_hex_to_binary.get(&number){
         binary.push_str(converted_value_of_single_character);
@@ -126,7 +109,7 @@ fn convert_from_hex_to_binary(hex_address: &str) -> &String{
 struct TupleOfTagAndAddress<'a>{
     tag: &'a str,
     hex_address: &'a str,
-    binary: &'a str 
+    binary: String
 }
 
 //if first_byte != 32{ remember the below function should only run if this if statement is satisfied as 32 is equivalent to a space 
@@ -139,7 +122,7 @@ fn turn_line_sep_vector_into_tuple(line_of_vec: &str)-> TupleOfTagAndAddress{
     let tag_address = TupleOfTagAndAddress{
         tag: split_instruction[0],
         hex_address: split_instruction[1],
-        binary:"1001"
+        binary: convert_from_hex_to_binary(split_instruction[1]).unwrap()
     };
     return tag_address;
 }
@@ -157,7 +140,7 @@ println!("The size of the cache is {} bytes", cache_bytes_size);
 
 let test_tuple: TupleOfTagAndAddress = turn_line_sep_vector_into_tuple(" L 00602260,4");
 
-println!("The type of address {} and the address {}" ,test_tuple.tag, test_tuple.hex_address)
+println!("The type of address {}, and the address {} and the hex address in binary {}" ,test_tuple.tag, test_tuple.hex_address, test_tuple.binary)
 
 /*
 The first byte of the string will be 32 if it is a space, as we are ignoring Instruction addresses (I) and as all of these addresses
