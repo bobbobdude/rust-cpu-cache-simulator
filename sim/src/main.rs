@@ -61,7 +61,7 @@ fn calculate_cache_size(s: &String, E:&String, b:&String) -> u32{
 
 }
 
-fn make_file_line_seperated_vector(filepath: &str) -> Vec<String>{
+fn make_file_line_separated_vector(filepath: &str) -> Vec<String>{
     let file = File::open(filepath).expect("Failed to open file");
     let reader = BufReader::new(file);
     let mut vec_of_lines: Vec<String> = vec![];
@@ -86,12 +86,12 @@ fn convert_from_hex_to_binary(hex_address: &str) -> Result<String, &'static str>
         '7' => "0111".to_string(),
         '8' => "1000".to_string(),
         '9' => "1001".to_string(),
-        'A' => "1010".to_string(),
-        'B' => "1011".to_string(),
-        'C' => "1100".to_string(),
-        'D' => "1101".to_string(),
-        'E' => "1110".to_string(),
-        'F' => "1111".to_string()
+        'a' => "1010".to_string(),
+        'b' => "1011".to_string(),
+        'c' => "1100".to_string(),
+        'd' => "1101".to_string(),
+        'e' => "1110".to_string(),
+        'f' => "1111".to_string()
     };
     let mut binary = String::new();
     for number in hex_address.chars(){
@@ -144,9 +144,17 @@ let cache_bytes_size = calculate_cache_size(value_of_s, value_of_E, value_of_b);
 
 println!("The size of the cache is {} bytes", cache_bytes_size);
 
-let test_tuple:TupleOfTagAndAddress= turn_line_sep_vector_into_tuple("L 00602260,4").unwrap();
+let vec_of_trace_file = make_file_line_separated_vector(path_to_trace);
 
-println!("The type of address {}, and the address {} and the hex address in binary {}" ,test_tuple.tag, test_tuple.hex_address, test_tuple.binary)
+for line in vec_of_trace_file{
+    let test_tuple = turn_line_sep_vector_into_tuple(&line).unwrap();
+    println!("The type of address {}, and the address {} and the hex address in binary {}" ,test_tuple.tag, test_tuple.hex_address, test_tuple.binary)
+}
+
+
+//let test_tuple:TupleOfTagAndAddress= turn_line_sep_vector_into_tuple("L 00602260,4").unwrap();
+
+//println!("The type of address {}, and the address {} and the hex address in binary {}" ,test_tuple.tag, test_tuple.hex_address, test_tuple.binary)
 /*
 The first byte of the string will be 32 if it is a space, as we are ignoring Instruction addresses (I) and as all of these addresses
 begin without a space:
