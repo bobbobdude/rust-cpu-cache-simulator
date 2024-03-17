@@ -46,7 +46,7 @@ println!("Index of -E string: {}, Number value of E: {}",index_of_E, value_of_E)
 
 println!("Index of -b string: {}, Number value of b: {}",index_of_b, value_of_b);
 
-println!("Index of -t string: {}, Path to trace file: {}",index_of_b, path_to_trace);
+println!("Index of -t string: {}, Path to trace file: {}",index_of_t, path_to_trace);
 
 #[allow(non_snake_case)]
 //This dynamically calculates how many BYTES the combined cache is
@@ -146,20 +146,59 @@ println!("The size of the cache is {} bytes", cache_bytes_size);
 
 let vec_of_trace_file = make_file_line_separated_vector(path_to_trace);
 
-for line in vec_of_trace_file{
-    let test_tuple = turn_line_sep_vector_into_tuple(&line).unwrap();
-    println!("The type of address {}, and the address {} and the hex address in binary {}" ,test_tuple.tag, test_tuple.hex_address, test_tuple.binary)
+
+
+//Okay so we need to split the binary address into the tag bits, set bits and block bits and store the type of address it is alongside it. 
+
+struct BinaryInTagSetBlockParts<>{
+    type_of_mem_access: String,
+    tag_bits: String,
+    set_bits: String,
+    block_bits: String
 }
 
+let mut vec_of_binary_split_memory_addresses: Vec<BinaryInTagSetBlockParts> = Vec::new();
 
-//let test_tuple:TupleOfTagAndAddress= turn_line_sep_vector_into_tuple("L 00602260,4").unwrap();
+for line in vec_of_trace_file{
+    let cloned_line = line.to_string();
+    let input_tuple = turn_line_sep_vector_into_tuple(&cloned_line).unwrap();
+    let cloned_binary = input_tuple.binary.to_string();
+    let length_of_binary = cloned_binary.len();
+    let value_of_s_as_num: usize = value_of_s.parse().unwrap();
+    let value_of_b_as_num: usize = value_of_b.parse().unwrap();
 
-//println!("The type of address {}, and the address {} and the hex address in binary {}" ,test_tuple.tag, test_tuple.hex_address, test_tuple.binary)
-/*
-The first byte of the string will be 32 if it is a space, as we are ignoring Instruction addresses (I) and as all of these addresses
-begin without a space:
+    let block_end = length_of_binary;
+    let block_start = length_of_binary - value_of_b_as_num;
+    let set_start = (length_of_binary - value_of_b_as_num) - value_of_s_as_num;
+    let set_end = length_of_binary - value_of_b_as_num; 
 
-IGNORE ALL STRINGS FROM THE VECTOR THAT DON'T START WITH A BYTE OF 32
-*/
+
+    let mut binary_split_memory_address_to_input = BinaryInTagSetBlockParts{
+            type_of_mem_access: input_tuple.tag.to_string(),
+            tag_bits: cloned_binary[0..set_start].to_string(), 
+            set_bits: cloned_binary[set_start..set_end].to_string(), 
+            block_bits: cloned_binary[block_start..block_end].to_string()
+        };
+
+        //println!("The index of tag bits are 0..{:?}", set_start);
+        //println!("The index of set bits are {:?}..{:?}", set_start, set_end);
+        //println!("The index of block bits are {:?}..{:?}", block_start, block_end);
+        //println!();
+        //println!("{}", cloned_binary);
+        //println!("Type of memory access {}, the tag bits {}, the set bits {}, the block bits {}", binary_split_memory_address_to_input.type_of_mem_access, binary_split_memory_address_to_input.tag_bits, binary_split_memory_address_to_input.set_bits, binary_split_memory_address_to_input.block_bits);
+    
+    //println!("Type of memory access {}, the tag bits {}, the set bits {}, the block bits {}", binary_split_memory_address_to_input.type_of_mem_access, binary_split_memory_address_to_input.tag_bits, binary_split_memory_address_to_input.set_bits, binary_split_memory_address_to_input.block_bits);
+    //println!(); 
+    //println!("Value of binary length {}, value of s {}, value of b {}", length_of_binary, value_of_s_as_num, value_of_b_as_num);
+
+    vec_of_binary_split_memory_addresses.push(binary_split_memory_address_to_input)
+
+}
+
+for binary_split_memory_address in vec_of_binary_split_memory_addresses{
+   
+    println!("Type of memory access {}, the tag bits {}, the set bits {}, the block bits {}", binary_split_memory_address.type_of_mem_access, binary_split_memory_address.tag_bits, binary_split_memory_address.set_bits, binary_split_memory_address.block_bits);
+    println!("The complete memory address from the CPU is: {}{}{}", binary_split_memory_address.tag_bits,binary_split_memory_address.set_bits,binary_split_memory_address.block_bits)
+}
 
 }
