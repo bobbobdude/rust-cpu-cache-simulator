@@ -210,12 +210,32 @@ let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_
     //println!(); 
     //println!("Value of binary length {}, value of s {}, value of b {}", length_of_binary, value_of_s_as_num, value_of_b_as_num);
 
+    /*
+        for binary_split_memory_address in vec_of_binary_split_memory_addresses{
+             println!("Type of memory access {}, the tag bits {}, the set bits {}, and the size in bytes is {}", binary_split_memory_address.type_of_mem_access, binary_split_memory_address.tag_bits, binary_split_memory_address.set_bits, binary_split_memory_address.size );
+             println!();
+    }
+     */
 
 
-    for binary_split_memory_address in vec_of_binary_split_memory_addresses{
-        println!("Type of memory access {}, the tag bits {}, the set bits {}, and the size {}", binary_split_memory_address.type_of_mem_access, binary_split_memory_address.tag_bits, binary_split_memory_address.set_bits, binary_split_memory_address.size );
-        println!("The complete memory address from the CPU is: {}{}", binary_split_memory_address.tag_bits,binary_split_memory_address.set_bits);
-        println!();
+    //Okay so to represent the cache sets, and the amount of cache lines within those sets I have decided to create a fixed size 2d array. 
+    let cache_sets: usize = 2_usize.pow(value_of_s.parse().unwrap()); //rows
+    let cache_lines: usize = value_of_E.to_string().parse().unwrap(); //columns add one as we need a column for the block stored within the cache 
+
+
+    println!("The amount of rows or cache sets is {} and the amount of columns or cache lines is {}", cache_sets, cache_lines);
+
+    fn create_cache_2d_vector(cache_sets: usize, cache_lines: usize)-> Vec<Vec<String>>{
+
+        let mut cache_2d_representation:Vec<Vec<String>> = vec![vec!["empty".to_string(); cache_lines + 1]; cache_sets]; //columns/cache lines add one as we need a column for the block stored within the cache 
+
+        return cache_2d_representation;
+    }
+    
+    let mut cache_2d_representation = create_cache_2d_vector(cache_sets, cache_lines); 
+
+    for row in cache_2d_representation{
+        println!("{:?}", row);
     }
 
 }
