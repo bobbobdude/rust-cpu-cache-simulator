@@ -222,20 +222,64 @@ let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_
     let cache_sets: usize = 2_usize.pow(value_of_s.parse().unwrap()); //rows
     let cache_lines: usize = value_of_E.to_string().parse().unwrap(); //columns add one as we need a column for the block stored within the cache 
 
-
-    println!("The amount of rows or cache sets is {} and the amount of columns or cache lines is {}", cache_sets, cache_lines);
-
-    fn create_cache_2d_vector(cache_sets: usize, cache_lines: usize)-> Vec<Vec<String>>{
-
-        let mut cache_2d_representation:Vec<Vec<String>> = vec![vec!["empty".to_string(); cache_lines + 1]; cache_sets]; //columns/cache lines add one as we need a column for the block stored within the cache 
-
-        return cache_2d_representation;
+    struct ArrayRepresentationOfCache{
+        rows_or_cache_sets: usize,
+        cols_or_cache_lines: usize,
+        two_d_array: Vec<Vec<String>> 
     }
+
+    //https://rust-unofficial.github.io/patterns/idioms/ctor.html
+
+    //Equivalent of constructor in Java
     
-    let mut cache_2d_representation = create_cache_2d_vector(cache_sets, cache_lines); 
-
-    for row in cache_2d_representation{
-        println!("{:?}", row);
+    impl ArrayRepresentationOfCache{ 
+        fn new(rows_or_cache_sets: usize, cols_or_cache_lines: usize)-> Self{
+            let two_d_array = vec![vec!["empty".to_string();cols_or_cache_lines];rows_or_cache_sets];
+            Self {rows_or_cache_sets, cols_or_cache_lines, two_d_array}
+        }
     }
+
+
+    
+    
+    
+    //Commented this code as im going to have a go at creating a custom struct with its own implementations to represent the cache
+
+    // println!("The amount of rows or cache sets is {} and the amount of columns or cache lines is {}", cache_sets, cache_lines);
+
+    // fn create_cache_2d_vector(cache_sets: usize, cache_lines: usize)-> Vec<Vec<String>>{
+
+    //     let mut cache_2d_representation:Vec<Vec<String>> = vec![vec!["empty".to_string(); cache_lines + 1]; cache_sets]; //columns/cache lines add one as we need a column for the block stored within the cache 
+
+    //     return cache_2d_representation;
+    // }
+    
+    // let mut cache_2d_representation = create_cache_2d_vector(cache_sets, cache_lines); 
+
+    // for row in cache_2d_representation{
+    //     println!("{:?}", row);
+    // }
+
+// Okay take the example where I have an address line in binary that looks like this 011111111110111111100000010110101000: 
+//
+// This is a 36-bit address line sent from the CPU. 
+//
+// Let's imagine this is a direct mapped cache with 16 sets (and as its direct mapped one cache line per set).
+//
+// The block offset (which in my case can be ignored as we are only simulating cache hits and misses) is the first four bits, the set bits are the next four bits after. 
+//
+// So, in this case lets imagine the cache is empty, and that this is a load operation.
+//
+// First, we would check of the cache contains any data within that set and if it doesn't, we consider it a cache miss (compulsory). 
+//
+// Then in our imaginary cache we store the set bits and the tag, as the tag determines which block is stored in the cache set. 
+//
+// If we have another address that loads the same block in the same set, it would be a cache hit. 
+//
+// But if the CPU sends a request to the same set but for a different block, we will have a cache miss (conflict miss).
+//
+// In the situation that the set bits are different we would store the following block in the imaginary cache in a different cache set. 
+//
+// Throughout all of these processes we need to check whether the cache is full (or if any of the cache lines are not "empty")
 
 }
