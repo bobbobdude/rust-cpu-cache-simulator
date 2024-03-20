@@ -239,6 +239,13 @@ let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_
         }
     }
 
+    let test_of_cache_struct = ArrayRepresentationOfCache::new(cache_sets, cache_lines);
+    
+    for row in test_of_cache_struct.two_d_array{
+        println!("{:?}", row);
+    }
+    
+
 
     
     
@@ -256,9 +263,7 @@ let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_
     
     // let mut cache_2d_representation = create_cache_2d_vector(cache_sets, cache_lines); 
 
-    // for row in cache_2d_representation{
-    //     println!("{:?}", row);
-    // }
+
 
 // Okay take the example where I have an address line in binary that looks like this 011111111110111111100000010110101000: 
 //
