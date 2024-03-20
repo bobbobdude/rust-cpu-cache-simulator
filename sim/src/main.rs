@@ -1,6 +1,7 @@
 #![allow(unused)]
 
 
+use std::alloc::System;
 use std::env;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
@@ -234,16 +235,26 @@ let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_
     
     impl ArrayRepresentationOfCache{ 
         fn new(rows_or_cache_sets: usize, cols_or_cache_lines: usize)-> Self{
-            let two_d_array = vec![vec!["empty".to_string();cols_or_cache_lines];rows_or_cache_sets];
+            let two_d_array = vec![vec!["empty".to_string();cols_or_cache_lines + 1];rows_or_cache_sets]; //columns/cache lines add one as we need a column for the block stored within the cache 
             Self {rows_or_cache_sets, cols_or_cache_lines, two_d_array}
         }
     }
 
-    let test_of_cache_struct = ArrayRepresentationOfCache::new(cache_sets, cache_lines);
+    impl ArrayRepresentationOfCache{
+        fn check_if_set_in_cache(&mut self, set_bits: String){
+            for row in &self.two_d_array{
+                println!("{}", row[0])
+            }
+        }
+    }
+
+    let mut test_of_cache_struct = ArrayRepresentationOfCache::new(cache_sets, cache_lines);
     
-    for row in test_of_cache_struct.two_d_array{
+    for row in &test_of_cache_struct.two_d_array{
         println!("{:?}", row);
     }
+
+    test_of_cache_struct.check_if_set_in_cache("10001".to_string())
     
 
 
