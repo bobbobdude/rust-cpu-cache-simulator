@@ -241,12 +241,16 @@ let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_
     }
 
     impl ArrayRepresentationOfCache{
-        fn check_if_set_in_cache(&mut self, set_bits: String){
-            for row in &self.two_d_array{
-                println!("{}", row[0])
-            }
+        fn check_if_set_in_cache(&mut self, set_bits: String) -> Option<bool>{
+                for row in &self.two_d_array{
+                    if row[0] == set_bits{
+                        return Some(true);
+                    }
+                }
+                return None;
         }
     }
+            
 
     let mut test_of_cache_struct = ArrayRepresentationOfCache::new(cache_sets, cache_lines);
     
@@ -254,7 +258,11 @@ let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_
         println!("{:?}", row);
     }
 
-    test_of_cache_struct.check_if_set_in_cache("10001".to_string())
+    let is_the_set_there = test_of_cache_struct.check_if_set_in_cache("10001".to_string());
+
+    if is_the_set_there.is_none(){
+        println!("No match found")
+    }
     
 
 
