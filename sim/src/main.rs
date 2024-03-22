@@ -226,7 +226,10 @@ let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_
     struct ArrayRepresentationOfCache{
         rows_or_cache_sets: usize,
         cols_or_cache_lines: usize,
-        two_d_array: Vec<Vec<String>> 
+        two_d_array: Vec<Vec<String>>,
+        cache_hits: i32,
+        cache_misses: i32, 
+        cache_evictions: i32
     }
 
     //https://rust-unofficial.github.io/patterns/idioms/ctor.html
@@ -236,7 +239,8 @@ let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_
     impl ArrayRepresentationOfCache{ 
         fn new(rows_or_cache_sets: usize, cols_or_cache_lines: usize)-> Self{
             let two_d_array = vec![vec!["empty".to_string();cols_or_cache_lines + 1];rows_or_cache_sets]; //columns/cache lines add one as we need a column for the block stored within the cache 
-            Self {rows_or_cache_sets, cols_or_cache_lines, two_d_array}
+            let initial_value_of_all_counters = 0;
+            Self {rows_or_cache_sets, cols_or_cache_lines, two_d_array, cache_hits:initial_value_of_all_counters, cache_misses:initial_value_of_all_counters, cache_evictions:initial_value_of_all_counters}
         }
     }
 
@@ -264,7 +268,23 @@ let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_
                     }
                     index_of_vector_in_vector+= 1; 
                 }
+                self.cache_misses;
+
                 return None;
+        }
+    }
+
+    impl ArrayRepresentationOfCache{
+        fn check_if_tag_bits_match(&mut self, tag_bits: String, index_of_vector_to_check: usize)->bool{
+            
+            if &mut self.two_d_array[index_of_vector_to_check][1] == &tag_bits{
+                self.cache_hits += 1;
+                return true 
+            }
+            else{
+                return false;
+                self.cache_misses += 1;
+            }
         }
     }
             
@@ -276,22 +296,19 @@ let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_
 
     println!("This should be [\"empty\", \"empty\"] as it will find the \"empty\" in the first row: {:?}. This should be 0 as that is the index of the first row: {}",test_of_cache_struct.two_d_array[index_of_set_bits_vector] ,index_of_set_bits_vector); 
 
+    println!("Cache hits (should be zero): {}\nCache misses (should be zero): {}\nCache evictions (should be zero): {}", test_of_cache_struct.cache_hits, test_of_cache_struct.cache_misses, test_of_cache_struct.cache_evictions);
 
+    let are_set_bits_in_cache = test_of_cache_struct.is_set_in_the_cache("empty".to_string());
     
-    
-    
-    //Commented this code as im going to have a go at creating a custom struct with its own implementations to represent the cache
+    if are_set_bits_in_cache != None{
+        if test_of_cache_struct.check_if_tag_bits_match("empty".to_string(), are_set_bits_in_cache.unwrap()){
+            println!("Got inside the second if statement");
+        }
+    }
 
-    // println!("The amount of rows or cache sets is {} and the amount of columns or cache lines is {}", cache_sets, cache_lines);
+    println!("After changes...");
 
-    // fn create_cache_2d_vector(cache_sets: usize, cache_lines: usize)-> Vec<Vec<String>>{
-
-    //     let mut cache_2d_representation:Vec<Vec<String>> = vec![vec!["empty".to_string(); cache_lines + 1]; cache_sets]; //columns/cache lines add one as we need a column for the block stored within the cache 
-
-    //     return cache_2d_representation;
-    // }
-    
-    // let mut cache_2d_representation = create_cache_2d_vector(cache_sets, cache_lines); 
+    println!("Cache hits (should be 1): {}\nCache misses (should be zero): {}\nCache evictions (should be zero): {}", test_of_cache_struct.cache_hits, test_of_cache_struct.cache_misses, test_of_cache_struct.cache_evictions);
 
 
 
