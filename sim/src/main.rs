@@ -241,11 +241,28 @@ let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_
     }
 
     impl ArrayRepresentationOfCache{
-        fn check_if_set_in_cache(&mut self, set_bits: String) -> Option<bool>{
-                for row in &self.two_d_array{
-                    if row[0] == set_bits{
-                        return Some(true);
+        fn to_add_without_eviction(&mut self, set_bits: String, tag_bits: String){
+
+            if (&mut self.two_d_array.len() == &mut self.rows_or_cache_sets){
+                for row in &mut self.two_d_array{
+                    if row[0] == "empty".to_string(){
+                        row[0] = set_bits.clone();
+                        row[1] = tag_bits.clone(); 
                     }
+                }
+            }
+
+        }
+    }
+
+    impl ArrayRepresentationOfCache{
+        fn is_set_in_the_cache(&mut self, set_bits: String) -> Option<usize>{
+            let mut index_of_vector_in_vector:usize = 0;
+                for row in &mut self.two_d_array{
+                    if row[0] == set_bits{
+                        return Some(index_of_vector_in_vector);
+                    }
+                    index_of_vector_in_vector+= 1; 
                 }
                 return None;
         }
@@ -253,17 +270,11 @@ let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_
             
 
     let mut test_of_cache_struct = ArrayRepresentationOfCache::new(cache_sets, cache_lines);
-    
-    for row in &test_of_cache_struct.two_d_array{
-        println!("{:?}", row);
-    }
 
-    let is_the_set_there = test_of_cache_struct.check_if_set_in_cache("10001".to_string());
+    let index_of_set_bits_vector = test_of_cache_struct.is_set_in_the_cache("empty".to_string()).unwrap();
 
-    if is_the_set_there.is_none(){
-        println!("No match found")
-    }
-    
+
+    println!("This should be [\"empty\", \"empty\"] as it will find the \"empty\" in the first row: {:?}. This should be 0 as that is the index of the first row: {}",test_of_cache_struct.two_d_array[index_of_set_bits_vector] ,index_of_set_bits_vector); 
 
 
     
