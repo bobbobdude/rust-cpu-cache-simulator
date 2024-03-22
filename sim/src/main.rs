@@ -282,35 +282,39 @@ let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_
                 return true 
             }
             else{
-                return false;
+                //remember this will also cause a cache eviction in a DMC but think I should add that at the point where the data is actually evicted from the cache. 
                 self.cache_misses += 1;
+                return false;
             }
         }
     }
+
+    impl ArrayRepresentationOfCache{
+        fn is_cache_correct_size (&self)->bool{
+            if &self.two_d_array.len() == &self.rows_or_cache_sets{
+                return true;
+            }else{
+                //This should only evaluate to true when the cache has one too many cache lines, the cache should never contain more than one over what it can hold as handling the eviction should always happen first
+                return false;
+            }
+        }
+    }
+    
             
 
     let mut test_of_cache_struct = ArrayRepresentationOfCache::new(cache_sets, cache_lines);
 
     let index_of_set_bits_vector = test_of_cache_struct.is_set_in_the_cache("empty".to_string()).unwrap();
 
+    test_of_cache_struct.two_d_array.push(vec!["empty".to_string(), "empty".to_string()]); //This should force the vector to be the incorrect size 
 
-    println!("This should be [\"empty\", \"empty\"] as it will find the \"empty\" in the first row: {:?}. This should be 0 as that is the index of the first row: {}",test_of_cache_struct.two_d_array[index_of_set_bits_vector] ,index_of_set_bits_vector); 
+    let test = test_of_cache_struct.is_cache_correct_size();
 
-    println!("Cache hits (should be zero): {}\nCache misses (should be zero): {}\nCache evictions (should be zero): {}", test_of_cache_struct.cache_hits, test_of_cache_struct.cache_misses, test_of_cache_struct.cache_evictions);
-
-    let are_set_bits_in_cache = test_of_cache_struct.is_set_in_the_cache("empty".to_string());
-    
-    if are_set_bits_in_cache != None{
-        if test_of_cache_struct.check_if_tag_bits_match("empty".to_string(), are_set_bits_in_cache.unwrap()){
-            println!("Got inside the second if statement");
-        }
-    }
-
-    println!("After changes...");
-
-    println!("Cache hits (should be 1): {}\nCache misses (should be zero): {}\nCache evictions (should be zero): {}", test_of_cache_struct.cache_hits, test_of_cache_struct.cache_misses, test_of_cache_struct.cache_evictions);
-
-
+    if test == true{
+        println!("Cache is correct size")
+    }else if test == false{
+        println!("Cache is incorrect size.")
+    };
 
 // Okay take the example where I have an address line in binary that looks like this 011111111110111111100000010110101000: 
 //
