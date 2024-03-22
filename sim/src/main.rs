@@ -262,13 +262,13 @@ let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_
     impl ArrayRepresentationOfCache{
         fn is_set_in_the_cache(&mut self, set_bits: String) -> Option<usize>{
             let mut index_of_vector_in_vector:usize = 0;
-                for row in &mut self.two_d_array{
-                    if row[0] == set_bits{
+                for line in &mut self.two_d_array{
+                    if line[0] == set_bits{
                         return Some(index_of_vector_in_vector);
                     }
                     index_of_vector_in_vector+= 1; 
                 }
-                self.cache_misses;
+                self.cache_misses += 1;
 
                 return None;
         }
@@ -299,22 +299,25 @@ let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_
             }
         }
     }
+
+    impl ArrayRepresentationOfCache{
+        fn is_there_an_empty_cache_line(&self)->bool{
+            for line in &self.two_d_array{
+                if line[0] == "empty".to_string(){
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
     
             
 
     let mut test_of_cache_struct = ArrayRepresentationOfCache::new(cache_sets, cache_lines);
 
-    let index_of_set_bits_vector = test_of_cache_struct.is_set_in_the_cache("empty".to_string()).unwrap();
+    let test = test_of_cache_struct.is_there_an_empty_cache_line();
 
-    test_of_cache_struct.two_d_array.push(vec!["empty".to_string(), "empty".to_string()]); //This should force the vector to be the incorrect size 
-
-    let test = test_of_cache_struct.is_cache_correct_size();
-
-    if test == true{
-        println!("Cache is correct size")
-    }else if test == false{
-        println!("Cache is incorrect size.")
-    };
+    println!("{}", test);
 
 // Okay take the example where I have an address line in binary that looks like this 011111111110111111100000010110101000: 
 //
