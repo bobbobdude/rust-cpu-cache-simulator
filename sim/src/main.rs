@@ -141,15 +141,12 @@ fn split_binary_address_into_type_t_s_and_b(vec_of_trace_file_input: Vec<String>
             let value_of_s_as_num: usize = value_of_s.parse().unwrap();
             let value_of_b_as_num: usize = value_of_b.parse().unwrap();
             
-            let block_end = length_of_binary;
-            let block_start = length_of_binary - value_of_b_as_num;
-            let set_start = (length_of_binary - value_of_b_as_num) - value_of_s_as_num;
             let set_end = length_of_binary - value_of_b_as_num; 
             
             let mut binary_split_memory_address_to_input = BinaryInTagSetBlockParts{
                 type_of_mem_access: input_tuple.tag.to_string(),
                 tag_bits: cloned_binary[set_end..].to_string(), 
-                set_bits: cloned_binary[set_start..set_end].to_string(), 
+                set_bits: cloned_binary[0..set_end].to_string(), 
                 size: input_tuple.size.to_string()
             };
             vec_of_binary_split_memory_addresses.push(binary_split_memory_address_to_input);         
@@ -169,6 +166,7 @@ let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_
     let cache_lines: usize = value_of_E.to_string().parse().unwrap(); //columns add one as we need a column for the block stored within the cache 
 
     struct ArrayRepresentationOfCache{
+        value_of_b: usize,
         rows_or_cache_sets: usize,
         cols_or_cache_lines: usize,
         two_d_array: Vec<Vec<String>>,
@@ -180,101 +178,27 @@ let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_
     //https://rust-unofficial.github.io/patterns/idioms/ctor.html
     
     impl ArrayRepresentationOfCache{ 
-        fn new(rows_or_cache_sets: usize, cols_or_cache_lines: usize)-> Self{//Equivalent of constructor in Java
+        fn new(rows_or_cache_sets: usize, cols_or_cache_lines: usize, value_of_b: String)-> Self{//Equivalent of constructor in Java
+            let value_of_b_usize: usize = value_of_b.parse().unwrap();
             let two_d_array = vec![vec!["empty".to_string();cols_or_cache_lines + 1];rows_or_cache_sets]; //columns/cache lines add one as we need a column for the block stored within the cache 
             let initial_value_of_all_counters = 0;
-            Self {rows_or_cache_sets, cols_or_cache_lines, two_d_array, cache_hits:initial_value_of_all_counters, cache_misses:initial_value_of_all_counters, cache_evictions:initial_value_of_all_counters}
+            Self {rows_or_cache_sets, cols_or_cache_lines, two_d_array, value_of_b:value_of_b_usize, cache_hits:initial_value_of_all_counters, cache_misses:initial_value_of_all_counters, cache_evictions:initial_value_of_all_counters}
         }
     }
 
 
-    impl ArrayRepresentationOfCache{
-        fn is_set_in_the_cache(&mut self, set_bits: String) -> Option<usize>{
-            let mut index_of_vector_in_vector:usize = 0;
-                for line in &mut self.two_d_array{
-                    if line[0] == set_bits{
-                        return Some(index_of_vector_in_vector);
-                    }
-                    index_of_vector_in_vector+= 1; 
-                }
-                self.cache_misses += 1;
-
-                return None;
-        }
-    }
-
-    impl ArrayRepresentationOfCache{
-        fn check_if_tag_bits_match(&mut self, tag_bits: String, index_of_vector_to_check: usize)->bool{
-            
-            if &mut self.two_d_array[index_of_vector_to_check][1] == &tag_bits{
-                self.cache_hits += 1;
-                return true 
-            }
-            else{
-                //remember this will also cause a cache eviction in a DMC but think I should add that at the point where the data is actually evicted from the cache. 
-                self.cache_misses += 1;
-                self.cache_evictions += 1;
-                return false;
-            }
-        }
-    }
-
-    impl ArrayRepresentationOfCache{
-        fn is_cache_correct_size (&self)->bool{
-            if &self.two_d_array.len() == &self.rows_or_cache_sets{
-                return true;
-            }else{
-                //This should only evaluate to true when the cache has one too many cache lines, the cache should never contain more than one over what it can hold as handling the eviction should always happen first
-                return false;
-            }
-        }
-    }
-
-    impl ArrayRepresentationOfCache{
-        fn is_there_an_empty_cache_line(&self)->bool{
-            for line in &self.two_d_array{
-                if line[0] == "empty".to_string(){
-                    return true;
-                }
-            }
-            return false;
-            self.cache_misses += 1;
-            self.cache_evictions += 1; 
-        }
-    }
-
-    impl ArrayRepresentationOfCache{
-        fn insert_into_cache_dmc(&mut self, set_bits: String, tag_bits: String){ //dmc is direct mapped cache
-            let is_set_in_cache = self.is_set_in_the_cache(set_bits.clone());
-            //Below handles both store and load instructions
-            if let Some(index_of_set) = is_set_in_cache{ //Unsure about how this bit works but looked at error and changed it according to Rust, I think this only evaluates to true if "is_set_in_cache" returns "Some" as opposed to "None"
-                let do_tag_bits_match = self.check_if_tag_bits_match(tag_bits.clone(), index_of_set);
-                if do_tag_bits_match == true{
-                    self.two_d_array.remove(index_of_set); //Has to be first as if we insert another element we may fuck up the index 
-                    self.two_d_array.push(vec![set_bits, tag_bits]);
-                }
-                else if do_tag_bits_match != true{
-                    self.two_d_array.remove(index_of_set);
-                    self.two_d_array.push(vec![set_bits, tag_bits]);
-                }
-            }
-            else{
-                if self.is_there_an_empty_cache_line() == true{
-                    self.two_d_array.push(vec![set_bits, tag_bits]);
-                }
-                else if self.is_there_an_empty_cache_line() == false{
-                    self.two_d_array.pop();
-                    self.two_d_array.push(vec![set_bits, tag_bits]);
-                }
-            }
-        }
-    }
     
             
 
-    let mut test_of_cache_struct = ArrayRepresentationOfCache::new(cache_sets, cache_lines);
+    let mut test_of_cache_struct = ArrayRepresentationOfCache::new(cache_sets, cache_lines, value_of_b.to_owned());
 
-  for binary in vec_of_binary_split_memory_addresses{
-    println!("{}, {}", binary.tag_bits, binary.set_bits)
-  }
+
+    for line in vec_of_binary_split_memory_addresses{
+        println!("Values of set bits: {} Values of tag bits: {}", line.set_bits, line.tag_bits);   
+    }
+
+
+
+
+
 }
