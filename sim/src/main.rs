@@ -200,6 +200,21 @@ let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_
         } 
     }
 
+    impl ArrayRepresentationOfCache{
+        fn is_tag_in_cache(mut self, tag_bits: String, index_of_vector_where_set_found: usize){
+            for index_of_tag_bit in 1..self.two_d_array[index_of_vector_where_set_found].len(){
+                if self.two_d_array[index_of_vector_where_set_found][index_of_tag_bit] == tag_bits{
+                    self.cache_hits += 1;
+                    println!("Tag found in cache!");
+                    return;
+                }
+            }
+            self.cache_misses += 1; 
+            println!("Tag not found in cache!");
+            
+        }
+    }
+
 
     
             
@@ -215,9 +230,12 @@ let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_
     let index_of_vector_if_set_bits_in_cache = test_of_cache_struct.is_set_in_cache("0010".to_string());
 
     if index_of_vector_if_set_bits_in_cache != None{
-        println!("This works! And the index of the vector where the set bits have been found is: {}", index_of_vector_if_set_bits_in_cache.unwrap());
+        println!("This works! And the index of the vector where the set bits have been found is: {}, Length of vector: {}", index_of_vector_if_set_bits_in_cache.unwrap(), test_of_cache_struct.two_d_array[15].len());
     };
 
+    test_of_cache_struct.is_tag_in_cache("bingo".to_string(), 15);
+
+    
 
 
 
