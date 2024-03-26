@@ -1,3 +1,4 @@
+use core::num;
 #[allow(unused)]
 use std::{alloc::System, env, fs::File, io::{self, BufRead, BufReader}, collections::HashMap};
 #[macro_use]
@@ -215,9 +216,33 @@ let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_
         }
     }
 
+    impl ArrayRepresentationOfCache{
+        fn create_vector_with_blocks_after_tag_bits(&self, tag_bits:String, set_bits_to_put_at_front: String){
+            let tag_bits_as_decimal_num = usize::from_str_radix(&tag_bits, 2).unwrap();
+            let set_bits_as_decimal_num = usize::from_str_radix(&set_bits_to_put_at_front, 2).unwrap();
 
-    
+            let mut vec_of_decimal_blocks_to_add:Vec<usize> = vec![999; 6];
+            vec_of_decimal_blocks_to_add[0] = set_bits_as_decimal_num;
+            vec_of_decimal_blocks_to_add[1] = tag_bits_as_decimal_num;
+
+            for i in 2..(&self.value_of_b + 2){
+                vec_of_decimal_blocks_to_add[i] = tag_bits_as_decimal_num + (i - 1);
+            }
+
+            println!("{:?}", vec_of_decimal_blocks_to_add);
             
+            let mut vec_of_binary_blocks_to_add:Vec<String> = vec![];
+
+            for decimal_num in vec_of_decimal_blocks_to_add{
+                let mut binary_string = format!("{:b}", decimal_num);
+                while binary_string.len() < 4 {
+                    binary_string = "0".to_owned() + &binary_string;
+                }
+                vec_of_binary_blocks_to_add.push(binary_string);
+            };
+            println!("{:?}", vec_of_binary_blocks_to_add);
+        }
+    }   
 
     let mut test_of_cache_struct = ArrayRepresentationOfCache::new(cache_sets, cache_lines, value_of_b.to_owned());
 
@@ -233,9 +258,10 @@ let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_
         println!("This works! And the index of the vector where the set bits have been found is: {}, Length of vector: {}", index_of_vector_if_set_bits_in_cache.unwrap(), test_of_cache_struct.two_d_array[15].len());
     };
 
-    test_of_cache_struct.is_tag_in_cache("bingo".to_string(), 15);
+    //test_of_cache_struct.is_tag_in_cache("bingo".to_string(), 15);
 
-    
+    test_of_cache_struct.create_vector_with_blocks_after_tag_bits("0001".to_string(), "1000".to_string());
+
 
 
 
