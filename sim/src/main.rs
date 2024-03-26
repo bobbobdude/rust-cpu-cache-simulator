@@ -142,7 +142,7 @@ fn split_binary_address_into_type_t_s_and_b(vec_of_trace_file_input: Vec<String>
             let value_of_b_as_num: usize = value_of_b.parse().unwrap();
             
             let set_end = length_of_binary - value_of_b_as_num; 
-            
+
             let mut binary_split_memory_address_to_input = BinaryInTagSetBlockParts{
                 type_of_mem_access: input_tuple.tag.to_string(),
                 tag_bits: cloned_binary[set_end..].to_string(), 
@@ -180,10 +180,24 @@ let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_
     impl ArrayRepresentationOfCache{ 
         fn new(rows_or_cache_sets: usize, cols_or_cache_lines: usize, value_of_b: String)-> Self{//Equivalent of constructor in Java
             let value_of_b_usize: usize = value_of_b.parse().unwrap();
-            let two_d_array = vec![vec!["empty".to_string();cols_or_cache_lines + 1];rows_or_cache_sets]; //columns/cache lines add one as we need a column for the block stored within the cache 
+            let two_d_array = vec![vec!["empty".to_string();value_of_b_usize + 2];rows_or_cache_sets]; //Plus 2 as we need to account for the extra initial block and the set bits 
             let initial_value_of_all_counters = 0;
             Self {rows_or_cache_sets, cols_or_cache_lines, two_d_array, value_of_b:value_of_b_usize, cache_hits:initial_value_of_all_counters, cache_misses:initial_value_of_all_counters, cache_evictions:initial_value_of_all_counters}
         }
+    }
+
+    impl ArrayRepresentationOfCache{ 
+        fn is_set_in_cache(&self, set_bits: String)-> Option<usize>{ //returns none if the set is not found, resulting in a certain cache miss. 
+            let mut index_of_vector_where_set_found:usize = 0;
+            for vector in &self.two_d_array{
+                if vector[0] == set_bits{
+                    return Some(index_of_vector_where_set_found);
+                }
+                index_of_vector_where_set_found += 1;
+            }
+            return None;
+            self.cache_misses += 1;
+        } 
     }
 
 
@@ -192,10 +206,17 @@ let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_
 
     let mut test_of_cache_struct = ArrayRepresentationOfCache::new(cache_sets, cache_lines, value_of_b.to_owned());
 
+    test_of_cache_struct.two_d_array[15][0] = "0010".to_string(); 
 
-    for line in vec_of_binary_split_memory_addresses{
-        println!("Values of set bits: {} Values of tag bits: {}", line.set_bits, line.tag_bits);   
-    }
+    for line in &test_of_cache_struct.two_d_array{
+        println!("{:?}", line);   
+    };
+
+    let index_of_vector_if_set_bits_in_cache = test_of_cache_struct.is_set_in_cache("0010".to_string());
+
+    if index_of_vector_if_set_bits_in_cache != None{
+        println!("This works! And the index of the vector where the set bits have been found is: {}", index_of_vector_if_set_bits_in_cache.unwrap());
+    };
 
 
 
