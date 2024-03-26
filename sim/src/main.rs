@@ -2,6 +2,8 @@
 use std::{alloc::System, env, fs::File, io::{self, BufRead, BufReader}, collections::HashMap};
 #[macro_use]
 extern crate maplit;
+#[allow(unused)]
+
 fn main() {
 
 let args: Vec<String> = env::args().skip(1).collect(); //The skip here stops the executable binary being placed in the output
@@ -146,7 +148,7 @@ fn split_binary_address_into_type_t_s_and_b(vec_of_trace_file_input: Vec<String>
             
             let mut binary_split_memory_address_to_input = BinaryInTagSetBlockParts{
                 type_of_mem_access: input_tuple.tag.to_string(),
-                tag_bits: cloned_binary[0..set_start].to_string(), 
+                tag_bits: cloned_binary[set_end..].to_string(), 
                 set_bits: cloned_binary[set_start..set_end].to_string(), 
                 size: input_tuple.size.to_string()
             };
@@ -272,10 +274,7 @@ let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_
 
     let mut test_of_cache_struct = ArrayRepresentationOfCache::new(cache_sets, cache_lines);
 
-    for binary in vec_of_binary_split_memory_addresses{
-        test_of_cache_struct.insert_into_cache_dmc(binary.set_bits, binary.tag_bits);
-    }
-
-    println!("hits:{} misses:{} evictions:{}", test_of_cache_struct.cache_hits, test_of_cache_struct.cache_misses, test_of_cache_struct.cache_evictions);
-
+  for binary in vec_of_binary_split_memory_addresses{
+    println!("{}, {}", binary.tag_bits, binary.set_bits)
+  }
 }
