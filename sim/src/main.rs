@@ -1,4 +1,6 @@
 #[allow(unused)]
+
+use std::path;
 use std::{alloc::System, env, fs::File, io::{self, BufRead, BufReader}, collections::HashMap};
 #[macro_use]
 extern crate maplit;
@@ -47,7 +49,9 @@ fn make_file_line_separated_vector(filepath: &str) -> Vec<String>{
     let mut vec_of_lines: Vec<String> = vec![];
     for line in reader.lines(){
         let line_to_add = line.unwrap();
-        vec_of_lines.push(line_to_add);
+        if !line_to_add.contains('I'){
+            vec_of_lines.push(line_to_add);
+        }
     }
     return vec_of_lines;
 }
@@ -84,5 +88,11 @@ fn convert_from_hex_to_binary(hex_address: &str) -> Result<String, &'static str>
     Ok(binary)
     
 } 
+
+let vec_of_lines_in_trace_file = make_file_line_separated_vector(path_to_trace);
+
+for line in vec_of_lines_in_trace_file{
+    println!("{}", line);
+}
 
 }
