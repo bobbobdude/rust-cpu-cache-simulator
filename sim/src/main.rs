@@ -1,5 +1,6 @@
 #[allow(unused)]
 use core::num;
+use std::vec;
 #[allow(unused)]
 use std::process::id;
 #[allow(unused)]
@@ -150,6 +151,8 @@ fn split_binary_address_into_type_t_s_and_b(vec_of_trace_file_input: Vec<String>
                 size: input_tuple.size.to_string()
             };
 
+            // println!("Original full binary: {}, Original hex address: {}, Tag bits: {}, Set bits: {}",&input_tuple.binary, &input_tuple.hex_address, &binary_split_memory_address_to_input.tag_bits, binary_split_memory_address_to_input.set_bits);
+
             vec_of_binary_split_memory_addresses.push(binary_split_memory_address_to_input);         
         }
         Ok(vec_of_binary_split_memory_addresses)
@@ -161,13 +164,13 @@ fn split_binary_address_into_type_t_s_and_b(vec_of_trace_file_input: Vec<String>
 
 }
 
-let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_s_and_b(vec_of_trace_file, value_of_s,value_of_b).unwrap();
+let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_s_and_b(vec_of_trace_file.clone(), value_of_s,value_of_b).unwrap();
     //Okay so to represent the cache sets, and the amount of cache lines within those sets I have decided to create a fixed size 2d array. 
-    let cache_sets: usize = 2_usize.pow(value_of_s.parse().unwrap()); //rows
-    let cache_lines: usize = value_of_E.to_string().parse().unwrap(); //columns add one as we need a column for the block stored within the cache 
+
 
     struct ArrayRepresentationOfCache{
-        value_of_b: usize,
+        value_of_s_as_usize: usize,
+        value_of_e_as_usize: usize,
         rows_or_cache_sets: usize,
         cols_or_cache_lines: usize,
         two_d_array: Vec<Vec<String>>,
@@ -179,106 +182,138 @@ let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_
     //https://rust-unofficial.github.io/patterns/idioms/ctor.html
     
     impl ArrayRepresentationOfCache{ 
-        fn new(rows_or_cache_sets: usize, cols_or_cache_lines: usize, value_of_b: String)-> Self{//Equivalent of constructor in Java
-            let value_of_b_usize: usize = value_of_b.parse().unwrap();
-            let two_d_array = vec![vec!["empty".to_string();value_of_b_usize + 2];rows_or_cache_sets]; //Plus 2 as we need to account for the extra initial block and the set bits 
+        fn new(value_of_s_as_usize: usize, value_of_e_as_usize: usize, rows_or_cache_sets: usize, cols_or_cache_lines: usize)-> Self{//Equivalent of constructor in Java
+            let two_d_array = vec![vec!["empty".to_string();cols_or_cache_lines + 1];rows_or_cache_sets]; //Plus 1 as we need to account for the extra initial block and the set bits 
             let initial_value_of_all_counters = 0;
-            Self {rows_or_cache_sets, cols_or_cache_lines, two_d_array, value_of_b:value_of_b_usize, cache_hits:initial_value_of_all_counters, cache_misses:initial_value_of_all_counters, cache_evictions:initial_value_of_all_counters}
+            Self {value_of_s_as_usize, value_of_e_as_usize, rows_or_cache_sets, cols_or_cache_lines, two_d_array, cache_hits:initial_value_of_all_counters, cache_misses:initial_value_of_all_counters, cache_evictions:initial_value_of_all_counters}
         }
     }
 
     impl ArrayRepresentationOfCache{
-        fn is_cache_set_empty(&mut self)-> bool{
+        fn print_array(&self){
             for vec in &self.two_d_array{
-                if vec[0] == "empty".to_string(){
-                    return true;
-                }
+                println!("{:?}", vec)
             }
-            return false;
+            println!()
         }
     }
 
     impl ArrayRepresentationOfCache{ 
-        fn is_set_in_cache(&mut self, set_bits: String, tag_bits: String)-> Option<usize>{ //returns none if the set is not found, resulting in a certain cache miss. 
-            let mut index_of_vector_where_set_found:usize = 0;
-            for vector in &self.two_d_array{
-                if vector[0] == set_bits{
-                    return Some(index_of_vector_where_set_found);
+        fn dmc_process(&mut self, set_bits: String, tag_bits: String, type_of_instruction: String){ //returns none if the set is not found, resulting in a certain cache miss. 
+            let mut index = usize::from_str_radix(&set_bits, 2).unwrap();
+            // println!("{}", index);
+            if self.two_d_array[index][1] == "empty"{
+                // println!("Gets into first if statement");
+                self.cache_misses += 1;
+                self.two_d_array[index][1] = tag_bits;
+                if type_of_instruction == "M"{
+                    self.cache_hits +=1;
                 }
-                index_of_vector_where_set_found += 1;
             }
-            self.cache_misses += 1;
-
-            if self.is_cache_set_empty() == false{
-                self.cache_evictions += 1; 
+            else if self.two_d_array[index][1] != "empty"{
+                // println!("Gets into else if statement");
+                if tag_bits == self.two_d_array[index][1]{
+                    self.cache_hits += 1;
+                    if type_of_instruction == "M"{
+                        self.cache_hits += 1;
+                    }
+                }
+                else{
+                    // println!("Gets into final else statement");
+                    self.cache_misses += 1;
+                    self.cache_evictions += 1;
+                    self.two_d_array[index][1] = tag_bits;
+                    if type_of_instruction == "M"{
+                        self.cache_hits += 1;
+                    }
+                }
             }
-
-            let cache_set_to_add = self.create_vector_with_blocks_after_tag_bits(tag_bits, set_bits);
-            self.two_d_array.insert(0, cache_set_to_add);
-            self.two_d_array.pop();
-
-            return None;
-
-
         } 
     }
 
     impl ArrayRepresentationOfCache{
-        fn is_tag_in_cache(&mut self, tag_bits: &String, set_bits: &String, index_of_vector_where_set_found: usize){
-            for index_of_tag_bit in 1..self.two_d_array[index_of_vector_where_set_found].len(){
-                if self.two_d_array[index_of_vector_where_set_found][index_of_tag_bit] == tag_bits.clone(){
-                    self.cache_hits += 1;
-                    self.two_d_array.remove(index_of_vector_where_set_found);
-                    let binary_to_insert = self.create_vector_with_blocks_after_tag_bits(tag_bits.to_string(), set_bits.to_string());
-                    self.two_d_array.insert(0, binary_to_insert); 
-                }
+        fn create_two_d_array_with_index_if_dmc(&mut self){
+            let size_of_set_bits = self.value_of_s_as_usize;
+            // println!("{}", num_bits)
+            let amount_of_different_indexes = self.rows_or_cache_sets;
+
+
+            let mut create_vec_of_dec_int_to_add = vec![];
+            for i in 0..amount_of_different_indexes.try_into().unwrap(){
+                create_vec_of_dec_int_to_add.push(i)
             }
-            self.cache_misses += 1; 
-            self.cache_evictions += 1;
-            self.two_d_array.remove(index_of_vector_where_set_found);
-            let binary_to_insert = self.create_vector_with_blocks_after_tag_bits(tag_bits.to_string(), set_bits.to_string());
-            self.two_d_array.insert(0, binary_to_insert); 
-        }
+            // println!("{:?}", create_vec_of_dec_int_to_add);
+
+            let mut vec_of_final_bits = vec![];
+            let bits_needed = size_of_set_bits;
+
+            for dec_int in create_vec_of_dec_int_to_add{
+                let binary_string = format!("{:0bits$b}", dec_int, bits = bits_needed.try_into().unwrap());
+                vec_of_final_bits.push(binary_string);
+            }
+
+            // println!("{:?}", vec_of_final_bits);
+
+            let mut iterator = 0; 
+
+            for mut vec in &mut self.two_d_array{
+                vec[0] = vec_of_final_bits[iterator].clone();
+                iterator += 1;
+            }   
+
     }
+}   
 
-    impl ArrayRepresentationOfCache{
-        fn create_vector_with_blocks_after_tag_bits(&self, tag_bits:String, set_bits_to_put_at_front: String)-> Vec<String>{
-            let tag_bits_as_decimal_num = usize::from_str_radix(&tag_bits, 2).unwrap();
-            let set_bits_as_decimal_num = usize::from_str_radix(&set_bits_to_put_at_front, 2).unwrap();
+let cache_sets: usize = 2_usize.pow(value_of_s.parse().unwrap()); //rows
+let cache_lines: usize = value_of_E.to_string().parse().unwrap(); //columns add one as we need a column for the block stored within the cache 
 
-            let mut vec_of_decimal_blocks_to_add:Vec<usize> = vec![999; 6];
-            vec_of_decimal_blocks_to_add[0] = set_bits_as_decimal_num;
-            vec_of_decimal_blocks_to_add[1] = tag_bits_as_decimal_num;
 
-            for i in 2..(&self.value_of_b + 2){
-                vec_of_decimal_blocks_to_add[i] = tag_bits_as_decimal_num + (i - 1);
-            }
-            
-            let mut vec_of_binary_blocks_to_add:Vec<String> = vec![];
+    let mut test_of_cache_struct = ArrayRepresentationOfCache::new(value_of_s.parse().unwrap(), value_of_E.parse().unwrap(), cache_sets, cache_lines);
 
-            for decimal_num in vec_of_decimal_blocks_to_add{
-                let mut binary_string = format!("{:b}", decimal_num);
-                while binary_string.len() < 4 {
-                    binary_string = "0".to_owned() + &binary_string;
-                }
-                vec_of_binary_blocks_to_add.push(binary_string);
-            };
-            return vec_of_binary_blocks_to_add; 
-        }
-    }   
-
+    // for instructions in vec_of_trace_file.clone(){
+    //     println!("{}",instructions);
+    // }
     
+    // for binary in vec_of_binary_split_memory_addresses{
+    //     let if_it_is_index_this_is_some = test_of_cache_struct.is_set_in_cache(binary.set_bits.clone(), binary.tag_bits.clone());
+    //     println!("These are the set bits and tag bits we are looking for {}, {}", binary.set_bits, binary.tag_bits);
+    //     if if_it_is_index_this_is_some.is_some(){
+    //         let index_of_vector_where_set_found = if_it_is_index_this_is_some.unwrap();
+    //         test_of_cache_struct.is_tag_in_cache(&binary.tag_bits.to_string(), &binary.set_bits.to_string(), index_of_vector_where_set_found);
+    //     }
+    //     println!();
+    //     test_of_cache_struct.print_array();
+    // }
 
-    let mut test_of_cache_struct = ArrayRepresentationOfCache::new(cache_sets, cache_lines, value_of_b.to_owned());
+    // for binary in vec_of_binary_split_memory_addresses{
+    //     println!("Tag bits in address: {}",binary.tag_bits);
+    //     println!("Set bits in address: {}",binary.set_bits);
+    //     test_of_cache_struct.create_vector_with_blocks_after_tag_bits(binary.tag_bits, binary.set_bits);
+    // }
+
+    // for binary in vec_of_binary_split_memory_addresses{
+        
+    //     println!("Tag bits in address: {}",binary.tag_bits);
+    //     println!("Set bits in address: {}",binary.set_bits);
+
+    // }
+
+    test_of_cache_struct.create_two_d_array_with_index_if_dmc();
 
     for binary in vec_of_binary_split_memory_addresses{
-        let if_it_is_index_this_is_some = test_of_cache_struct.is_set_in_cache(binary.set_bits.clone(), binary.tag_bits.clone());
-        if if_it_is_index_this_is_some.is_some(){
-            let index_of_vector_where_set_found = if_it_is_index_this_is_some.unwrap();
-            test_of_cache_struct.is_tag_in_cache(&binary.tag_bits, &binary.set_bits, index_of_vector_where_set_found);
+        if value_of_E == "1"{ //This means direct mapped cache
+            test_of_cache_struct.dmc_process(binary.set_bits, binary.tag_bits, binary.type_of_mem_access);
         }
     }
 
 
-    println!("Cache hits: {}, Cache misses: {}, Cache evictions: {}", test_of_cache_struct.cache_hits, test_of_cache_struct.cache_misses, test_of_cache_struct.cache_evictions)
+
+
+    // test_of_cache_struct.create_vector_with_blocks_after_tag_bits("00001111".to_string(), "1111".to_string());
+
+    println!("hits:{} misses:{} evictions:{}", test_of_cache_struct.cache_hits, test_of_cache_struct.cache_misses, test_of_cache_struct.cache_evictions);
+    
+    
+
+    // test_of_cache_struct.print_array();
 }
