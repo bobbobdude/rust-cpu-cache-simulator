@@ -264,6 +264,84 @@ let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_
     }
 }   
 
+impl ArrayRepresentationOfCache{
+    fn has_cache_got_empty_tag_fully_associative(&self) -> bool{
+        
+        for (index, element) in self.two_d_array[0].iter().enumerate(){
+            if element.to_string() == "empty".to_string(){
+                return true;
+                
+            }
+        }
+        return false;
+    }
+}
+
+impl ArrayRepresentationOfCache{
+    fn is_tag_in_cache_fully_associative(&self, block_id: String)-> Option<usize>{
+        for (index, element) in self.two_d_array[0].iter().enumerate(){
+            if element.to_string() == block_id.to_string(){
+                return Some(index);
+            }
+        }
+        return None;
+    }
+}
+
+impl ArrayRepresentationOfCache{
+    fn modify_two_d_array_to_be_correct_rows_and_correct_col_for_fully_associative(&mut self){
+        if self.two_d_array.len() > 1{
+            self.two_d_array.pop();
+        }
+        self.two_d_array[0].remove(0);
+    }
+}
+
+
+
+
+impl ArrayRepresentationOfCache {
+    fn insert_into_cache_if_fully_associative(&mut self, set_bits: String, tag_bits: String, type_of_instruction: String) {
+        let mut cache_hit = false;
+        let full_block_id = tag_bits + &set_bits;
+        if type_of_instruction == "M"{
+            self.cache_hits += 1;
+        }
+        let has_cache_got_empty_tags = self.has_cache_got_empty_tag_fully_associative();
+        let is_block_id_in_cache = self.is_tag_in_cache_fully_associative(full_block_id.clone());
+
+        if is_block_id_in_cache.is_some(){ //Covers situation when block_id is already in the cache and therefore all the block addresses are as well
+            self.cache_hits += 1;
+            let index_of_block_id = is_block_id_in_cache.unwrap();
+            self.two_d_array[0].remove(index_of_block_id);
+            self.two_d_array[0].insert(0, full_block_id.clone());
+            
+            
+            return;
+        }
+
+        else if has_cache_got_empty_tags == true && is_block_id_in_cache.is_none(){
+            self.cache_misses += 1;
+            self.two_d_array[0].pop();
+            self.two_d_array[0].insert(0, full_block_id).clone();
+            return;
+        }
+
+        else if has_cache_got_empty_tags == false && is_block_id_in_cache.is_none(){
+            // println!("This is the block_id when evicting: {}", full_block_id);
+            self.cache_evictions += 1;
+            self.cache_misses+=1;
+            self.two_d_array[0].pop();
+            self.two_d_array[0].insert(0, full_block_id.clone());
+            return;
+        }
+
+        
+
+        }
+    }
+
+
 let cache_sets: usize = 2_usize.pow(value_of_s.parse().unwrap()); //rows
 let cache_lines: usize = value_of_E.to_string().parse().unwrap(); //columns add one as we need a column for the block stored within the cache 
 
@@ -298,13 +376,24 @@ let cache_lines: usize = value_of_E.to_string().parse().unwrap(); //columns add 
 
     // }
 
-    test_of_cache_struct.create_two_d_array_with_index_if_dmc();
+    if value_of_s == "1" && value_of_E != "1"{
+        test_of_cache_struct.modify_two_d_array_to_be_correct_rows_and_correct_col_for_fully_associative();
+    }
 
     for binary in vec_of_binary_split_memory_addresses{
         if value_of_E == "1"{ //This means direct mapped cache
-            test_of_cache_struct.dmc_process(binary.set_bits, binary.tag_bits, binary.type_of_mem_access);
+            test_of_cache_struct.create_two_d_array_with_index_if_dmc();
+            test_of_cache_struct.dmc_process(binary.set_bits.clone(), binary.tag_bits.clone(), binary.type_of_mem_access.clone());
         }
+        if value_of_s == "1" && value_of_E != "1"{
+           test_of_cache_struct.insert_into_cache_if_fully_associative(binary.set_bits, binary.tag_bits, binary.type_of_mem_access);
+        }
+        // println!("This is what the cache looks like at this stage: ");
+        // test_of_cache_struct.print_array();
+
     }
+
+    // test_of_cache_struct.print_array();
 
 
 
