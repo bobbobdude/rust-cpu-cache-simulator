@@ -8,7 +8,7 @@ use std::{alloc::System, env, fs::File, io::{self, BufRead, BufReader}, collecti
 #[macro_use]
 extern crate maplit;
 #[allow(unused)]
-mod cache;
+pub mod cache;
 
 
 #[allow(non_snake_case)]
@@ -113,7 +113,8 @@ fn split_binary_address_into_type_t_s_and_b(vec_of_trace_file_input: Vec<String>
                 set_bits: cloned_binary[block_bits_end_index-value_of_s_as_num..block_bits_end_index].to_string(),
             };
 
-            // println!("Original full binary: {}, Original hex address: {}, Tag bits: {}, Set bits: {}",&input_tuple.binary, &input_tuple.hex_address, &binary_split_memory_address_to_input.tag_bits, binary_split_memory_address_to_input.set_bits);
+
+            // println!("Original full binary: {}, Tag bits: {}, Set bits: {}",&input_tuple.binary, &binary_split_memory_address_to_input.tag_bits, binary_split_memory_address_to_input.set_bits);
 
             vec_of_binary_split_memory_addresses.push(binary_split_memory_address_to_input);         
         }
@@ -197,6 +198,8 @@ let cache_lines: usize = value_of_E.to_string().parse().unwrap(); //columns add 
         my_cache.modify_two_d_array_to_be_correct_rows_and_correct_col_for_fully_associative();
     }
 
+
+
     for binary in vec_of_binary_split_memory_addresses{
         if value_of_E == "1"{ //This means direct mapped cache
             my_cache.create_two_d_array_with_index_if_dmc();
@@ -207,8 +210,8 @@ let cache_lines: usize = value_of_E.to_string().parse().unwrap(); //columns add 
         }
 
     }
-
     my_cache.print_hits_misses_evictions();
+    
 
 }
 
@@ -217,6 +220,7 @@ let cache_lines: usize = value_of_E.to_string().parse().unwrap(); //columns add 
 
     #[cfg(test)] //Basically tells rust to NOT compile the tests at the same time as compiling the rest of the code
     mod tests{
+        use cache;
         use super::*;
 
         #[test]
@@ -308,6 +312,92 @@ let cache_lines: usize = value_of_E.to_string().parse().unwrap(); //columns add 
                 Err(e) => assert_eq!(e, "Vector is empty and therefore the for loop did not run", "Unexpected error message for invalid hex input.")
             }
         }
-        
-          
+
+        //From this point I will try to test cache functionality by creating a cache
+        #[test]
+        fn test_cache_struct_array_creation_dmc(){
+
+            let value_of_s:&String = &"2".to_string();
+            let value_of_e:&String = &"1".to_string(); // A direct mapped cache 
+
+            let my_test_cache = cache::ArrayRepresentationOfCache::new(value_of_s.parse().unwrap(), value_of_e.parse().unwrap(),4, 1);
+
+            for line in my_test_cache.two_d_array{
+                assert_eq!(line.len(), 2); //As the value_of_e is one the cache only has one line or row as well as one more to store the set index (as determined by the amount of set bits) 
+            }
+             
         }
+
+        #[test]
+        fn test_cache_struct_array_creation_fac(){
+
+            let value_of_s:&String = &"1".to_string(); // A fully associative cache 
+            let value_of_e:&String = &"3".to_string(); 
+
+            let mut my_test_cache = cache::ArrayRepresentationOfCache::new(value_of_s.parse().unwrap(), value_of_e.parse().unwrap(),1,3);
+            my_test_cache.modify_two_d_array_to_be_correct_rows_and_correct_col_for_fully_associative(); //Modifies array to be one continuous vector (or one set)
+
+            for line in my_test_cache.two_d_array{
+                println!("{:?}", line);
+                assert_eq!(line.len(), 3); 
+            }
+             
+        }
+
+        #[test]
+        fn test_cache_struct_output_dmc(){
+            let value_of_s:&String = &"2".to_string();
+            #[allow(non_snake_case)]
+            let value_of_E:&String = &"1".to_string(); // A direct mapped cache 
+
+            let value_of_b: &String = &"1".to_string();
+
+            let mut my_test_cache = cache::ArrayRepresentationOfCache::new(value_of_s.parse().unwrap(), value_of_E.parse().unwrap(),4, 1);
+
+            let vec:Vec<String> = vec![" S 00602264,1".to_string(), " L 00602260,4".to_string(), " M 7fefe059c,4".to_string(), " L 7fefe0594,4".to_string(), " L 7fefe059c,4".to_string(), " L 7fefe059c,4".to_string()];
+
+            let vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_s_and_b(vec, value_of_s, value_of_b).unwrap();
+
+            for binary in vec_of_binary_split_memory_addresses{
+                if value_of_E == "1"{ //This means direct mapped cache
+                    my_test_cache.create_two_d_array_with_index_if_dmc();
+                    my_test_cache.dmc_process(binary.set_bits.clone(), binary.tag_bits.clone(), binary.type_of_mem_access.clone());
+                }
+                if value_of_s == "1" && value_of_E != "1"{
+                    my_test_cache.insert_into_cache_if_fully_associative(binary.set_bits, binary.tag_bits, binary.type_of_mem_access);
+                }
+            }
+            assert_eq!(my_test_cache.cache_hits, 2);
+            assert_eq!(my_test_cache.cache_misses, 5);
+            assert_eq!(my_test_cache.cache_evictions, 3);
+    }
+
+    #[test]
+    fn test_cache_struct_output_fac(){
+        let value_of_s:&String = &"1".to_string();
+        #[allow(non_snake_case)]
+        let value_of_E:&String = &"5".to_string(); // A direct mapped cache 
+
+        let value_of_b: &String = &"1".to_string();
+
+        let mut my_test_cache = cache::ArrayRepresentationOfCache::new(value_of_s.parse().unwrap(), value_of_E.parse().unwrap(),1, 5);
+
+        let vec:Vec<String> = vec![" S 00602264,1".to_string(), " L 00602260,4".to_string(), " M 7fefe059c,4".to_string(), " L 7fefe0594,4".to_string(), " L 7fefe059c,4".to_string(), " L 7fefe059c,4".to_string()];
+
+        let vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_s_and_b(vec, value_of_s, value_of_b).unwrap();
+
+        for binary in vec_of_binary_split_memory_addresses{
+            if value_of_E == "1"{ //This means direct mapped cache
+                my_test_cache.create_two_d_array_with_index_if_dmc();
+                my_test_cache.dmc_process(binary.set_bits.clone(), binary.tag_bits.clone(), binary.type_of_mem_access.clone());
+            }
+            if value_of_s == "1" && value_of_E != "1"{
+                my_test_cache.insert_into_cache_if_fully_associative(binary.set_bits, binary.tag_bits, binary.type_of_mem_access);
+            }
+        }
+        assert_eq!(my_test_cache.cache_hits, 3);
+        assert_eq!(my_test_cache.cache_misses, 4);
+        assert_eq!(my_test_cache.cache_evictions, 0);
+        }
+
+    }

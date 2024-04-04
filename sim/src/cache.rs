@@ -161,7 +161,7 @@ pub fn insert_into_cache_if_fully_associative(&mut self, set_bits: String, tag_b
     else if has_cache_got_empty_tags == true && is_block_id_in_cache.is_none(){
         self.cache_misses += 1;
         self.two_d_array[0].pop();
-        self.two_d_array[0].insert(0, full_block_id).clone();
+        self.two_d_array[0].insert(0, full_block_id.clone());
         return;
     }
 
