@@ -317,7 +317,18 @@ let cache_lines: usize = value_of_E.to_string().parse().unwrap(); //columns add 
             assert_eq!(binary_split[0].type_of_mem_access, "M");
         }
 
+        #[test]
+        fn test_split_binary_address_into_type_t_s_and_b_with_empty_vec(){
 
+            let vec_of_trace_file:Vec<String> = vec![];
+            let value_of_s:&String = &"2".to_string();
+            let value_of_b:&String = &"2".to_string();
+
+            match split_binary_address_into_type_t_s_and_b(vec_of_trace_file, value_of_s, value_of_b){
+                Ok(_) => panic!("Expected an error for empty vec file, but got nada."),
+                Err(e) => assert_eq!(e, "Vector is empty and therefore the for loop did not run", "Unexpected error message for invalid hex input.")
+            }
+        }
         
           
         }
