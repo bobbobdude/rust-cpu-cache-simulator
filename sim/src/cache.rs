@@ -28,6 +28,14 @@ impl ArrayRepresentationOfCache{
     }
 }
 
+impl ArrayRepresentationOfCache{
+    pub fn print_hits_misses_evictions(&self){
+        //hits:4 misses:5 evictions:3 for example 
+        println!("hits:{} misses:{} evictions:{}", self.cache_hits, self.cache_misses, self.cache_evictions);
+
+    }
+}
+
 impl ArrayRepresentationOfCache{ 
     pub fn dmc_process(&mut self, set_bits: String, tag_bits: String, type_of_instruction: String){ //returns none if the set is not found, resulting in a certain cache miss. 
         let mut index = usize::from_str_radix(&set_bits, 2).unwrap();

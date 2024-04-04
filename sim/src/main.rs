@@ -150,28 +150,8 @@ let value_of_E:&String = &args[index_of_E + 1];
 let value_of_b:&String = &args[index_of_b + 1];
 let path_to_trace:&String = &args[index_of_t + 1];
 
-
-
-
-
-
-
- 
-
-
-
-
-    
-
-
-
-
 let cache_bytes_size = calculate_cache_size(value_of_s, value_of_E, value_of_b);
 let vec_of_trace_file = make_file_line_separated_vector(path_to_trace);
-
-
-
-
 
 let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_s_and_b(vec_of_trace_file.clone(), value_of_s,value_of_b).unwrap();
     //Okay so to represent the cache sets, and the amount of cache lines within those sets I have decided to create a fixed size 2d array. 
@@ -228,8 +208,7 @@ let cache_lines: usize = value_of_E.to_string().parse().unwrap(); //columns add 
 
     }
 
-    println!("hits:{} misses:{} evictions:{}", my_cache.cache_hits, my_cache.cache_misses, my_cache.cache_evictions);
-
+    my_cache.print_hits_misses_evictions();
 
 }
 
