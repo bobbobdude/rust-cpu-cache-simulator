@@ -161,6 +161,10 @@ let cache_lines: usize = value_of_E.to_string().parse().unwrap(); //columns add 
         my_cache.modify_two_d_array_to_be_correct_rows_and_correct_col_for_fully_associative();
     }
 
+    if value_of_s != "1" && value_of_E != "1"{
+        my_cache.modify_cache_structure_for_set_associative();
+    }
+
 
 
     for binary in vec_of_binary_split_memory_addresses{
@@ -168,16 +172,16 @@ let cache_lines: usize = value_of_E.to_string().parse().unwrap(); //columns add 
             my_cache.dmc_process(binary.set_bits.clone(), binary.tag_bits.clone(), binary.type_of_mem_access.clone());
         }
         if value_of_s == "1" && value_of_E != "1"{//Fully associative as one set
-           my_cache.insert_into_cache_if_fully_associative(binary.set_bits, binary.tag_bits, binary.type_of_mem_access);
+           my_cache.insert_into_cache_if_fully_associative(binary.set_bits.clone(), binary.tag_bits.clone(), binary.type_of_mem_access.clone());
         }
         if value_of_s != "1" && value_of_E != "1"{//Set associative as more than one set and more than one cache line
-            println!("This is a set associative cache");
-            //my_cache.modify_cache_structure_for_set_associative(my_cache.value_of_s_as_usize);
+            my_cache.set_associative_process(binary.set_bits.clone(), binary.tag_bits.clone(), binary.type_of_mem_access.clone())            
         } 
     }
 
-    my_cache.print_array();
+   
     my_cache.print_hits_misses_evictions();
+    // my_cache.print_array();
 
 }
     //To follow convention I will test the main.rs file here

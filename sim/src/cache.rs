@@ -170,11 +170,84 @@ pub fn insert_into_cache_if_fully_associative(&mut self, set_bits: String, tag_b
 }
 
 impl ArrayRepresentationOfCache{
-    pub fn modify_cache_structure_for_set_associative(&mut self, value_of_s: usize){  
+    pub fn modify_cache_structure_for_set_associative(&mut self){ 
+        let amount_of_sets = self.rows_or_cache_sets; //Amount of sets 
         let mut vec_of_decimal_set_addresses:Vec<usize> = vec![]; 
-        for i in 0..value_of_s{
+        for i in 0..amount_of_sets{
             vec_of_decimal_set_addresses.push(i);
         }
-        let amount_of_each_set_address = self.two_d_array.len(); 
+        for index in 0..amount_of_sets{
+            let binary_string = format!("{:0bits$b}", vec_of_decimal_set_addresses[index], bits = self.value_of_s_as_usize.try_into().unwrap());
+            self.two_d_array[index][0] = binary_string;
+        }
     }
+}
+
+impl ArrayRepresentationOfCache{
+    pub fn is_tag_in_set(&self, set_bits: String, tag_bits:String) -> Option<usize>{
+        let index_of_set = usize::from_str_radix(&set_bits, 2).unwrap();
+
+        for tag in &self.two_d_array[index_of_set]{
+            if tag.to_string() == tag_bits{
+                return None; //This is a cache hit. Return None when the tag bits are found in the specific set
+            }
+        }
+        return Some(index_of_set); //If not return a Some value as the index of the set where the tag bits where not found, which we can assume is also full 
+    }
+}
+
+impl ArrayRepresentationOfCache{
+    pub fn is_specific_set_empty_set_associative(&self, set_bits: String)-> Option<usize>{
+        let index_of_set_to_check = usize::from_str_radix(&set_bits, 2).unwrap();
+
+        for tag in &self.two_d_array[index_of_set_to_check]{
+            if tag.to_string() == "empty"{
+                return None; 
+            }
+        }
+        return Some(index_of_set_to_check); 
+    }
+}
+
+impl ArrayRepresentationOfCache {
+    pub fn set_associative_process(&mut self, set_bits: String, tag_bits: String, type_of_address: String){
+        let is_none_if_empty_space = self.is_specific_set_empty_set_associative(set_bits.clone());
+        let index_of_set_to_check = usize::from_str_radix(&set_bits.clone(), 2).unwrap();
+
+        if type_of_address == "M"{
+            self.cache_hits += 1;
+        }
+
+        if is_none_if_empty_space.is_none(){
+            let is_none_if_found = self.is_tag_in_set(set_bits.clone(), tag_bits.clone()); 
+            if is_none_if_found.is_none(){//Is none if tag found in set and there is empty space
+                let tag_bits = tag_bits.clone();
+                self.two_d_array[index_of_set_to_check].retain(|item| item.to_string() != tag_bits); //Should remove the tag if it exists and leave the rest
+                self.two_d_array[index_of_set_to_check].insert(1, tag_bits.clone()); //Inserts tag bits at "top" to follow LRU policy 
+                self.cache_hits += 1;
+            }
+            else{
+            self.two_d_array[index_of_set_to_check].insert(1, tag_bits.clone());
+            self.two_d_array[index_of_set_to_check].pop();
+            self.cache_misses += 1;
+            }
+        }
+
+        if is_none_if_empty_space.is_some(){ //This means there are no empty spots in that particular set 
+            let is_none_if_found = self.is_tag_in_set(set_bits.clone(), tag_bits.clone()); 
+            if is_none_if_found.is_none(){//Is none if tag found in set 
+                let tag_bits = tag_bits;
+                self.two_d_array[index_of_set_to_check].retain(|item| item.to_string() != tag_bits); //Should remove the tag if it exists and leave the rest
+                self.two_d_array[index_of_set_to_check].insert(1, tag_bits); //Inserts tag bits at "top" to follow LRU policy 
+                self.cache_hits += 1;
+            }
+            else { //By this point, we have checked if the set is empty, we have checked if the tag is in the cache now we know we need to evict an element from a set
+                self.two_d_array[index_of_set_to_check].pop();
+                self.two_d_array[index_of_set_to_check].insert(1, tag_bits);
+                self.cache_misses += 1; 
+                self.cache_evictions += 1;
+            }
+        }
+    }
+    
 }
