@@ -316,13 +316,12 @@ let cache_lines: usize = value_of_E.to_string().parse().unwrap(); //columns add 
 
             let vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_s_and_b(vec, value_of_s, value_of_b).unwrap();
 
+            my_test_cache.create_two_d_array_with_index_if_dmc();
+            
             for binary in vec_of_binary_split_memory_addresses{
                 if value_of_E == "1"{ //This means direct mapped cache
-                    my_test_cache.create_two_d_array_with_index_if_dmc();
+                    
                     my_test_cache.dmc_process(binary.set_bits.clone(), binary.tag_bits.clone(), binary.type_of_mem_access.clone());
-                }
-                if value_of_s == "1" && value_of_E != "1"{
-                    my_test_cache.insert_into_cache_if_fully_associative(binary.set_bits, binary.tag_bits, binary.type_of_mem_access);
                 }
             }
             assert_eq!(my_test_cache.cache_hits, 2);
@@ -332,9 +331,9 @@ let cache_lines: usize = value_of_E.to_string().parse().unwrap(); //columns add 
 
     #[test]
     fn test_cache_struct_output_fac(){
-        let value_of_s:&String = &"1".to_string();
+        let value_of_s:&String = &"1".to_string(); //Fully associative cache 
         #[allow(non_snake_case)]
-        let value_of_E:&String = &"5".to_string(); // A direct mapped cache 
+        let value_of_E:&String = &"5".to_string(); 
 
         let value_of_b: &String = &"1".to_string();
 
@@ -344,11 +343,9 @@ let cache_lines: usize = value_of_E.to_string().parse().unwrap(); //columns add 
 
         let vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_s_and_b(vec, value_of_s, value_of_b).unwrap();
 
+        my_test_cache.modify_two_d_array_to_be_correct_rows_and_correct_col_for_fully_associative();
+
         for binary in vec_of_binary_split_memory_addresses{
-            if value_of_E == "1"{ //This means direct mapped cache
-                my_test_cache.create_two_d_array_with_index_if_dmc();
-                my_test_cache.dmc_process(binary.set_bits.clone(), binary.tag_bits.clone(), binary.type_of_mem_access.clone());
-            }
             if value_of_s == "1" && value_of_E != "1"{
                 my_test_cache.insert_into_cache_if_fully_associative(binary.set_bits, binary.tag_bits, binary.type_of_mem_access);
             }
@@ -357,5 +354,31 @@ let cache_lines: usize = value_of_E.to_string().parse().unwrap(); //columns add 
         assert_eq!(my_test_cache.cache_misses, 4);
         assert_eq!(my_test_cache.cache_evictions, 0);
         }
+        
+        #[test]
+        fn test_cache_struct_output_sac(){
+            let value_of_s:&String = &"2".to_string(); // A set associative cache 
+            #[allow(non_snake_case)]
+            let value_of_E:&String = &"2".to_string(); 
+    
+            let value_of_b: &String = &"2".to_string();
+    
+            let mut my_test_cache = cache::ArrayRepresentationOfCache::new(value_of_s.parse().unwrap(), value_of_E.parse().unwrap(),4, 2);
+    
+            let vec:Vec<String> = vec![" S 00602264,1".to_string(), " L 00602260,4".to_string(), " M 7fefe059c,4".to_string(), " L 7fefe0594,4".to_string(), " L 7fefe059c,4".to_string(), " L 7fefe059c,4".to_string()];
+    
+            let vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_s_and_b(vec, value_of_s, value_of_b).unwrap();
+    
+            my_test_cache.modify_cache_structure_for_set_associative();
 
+            for binary in vec_of_binary_split_memory_addresses{
+                if value_of_s != "1" && value_of_E != "1"{
+                    my_test_cache.set_associative_process(binary.set_bits, binary.tag_bits, binary.type_of_mem_access);
+                }
+            }
+
+            assert_eq!(my_test_cache.cache_hits, 3);
+            assert_eq!(my_test_cache.cache_misses, 4);
+            assert_eq!(my_test_cache.cache_evictions, 0);
+            }
     }
