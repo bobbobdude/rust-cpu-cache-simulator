@@ -282,5 +282,42 @@ let cache_lines: usize = value_of_E.to_string().parse().unwrap(); //columns add 
             }
         }
 
-    }
+        #[test]
+        fn test_turn_line_sep_vector_into_tuple() {
+            let line = "  M 20,1";
+    
+            if let Ok(tuple) = turn_line_sep_vector_into_tuple(line) {
+                assert_eq!(tuple.tag, "M");
+            } else {
+                panic!("Expected that the M would be equal to tuple.tag");
+            }
+        }
 
+        #[test]
+        fn test_turn_line_sep_vector_into_tuple_invalid_input_no_space() {
+            let line = "I,20";
+            assert!(turn_line_sep_vector_into_tuple(line).is_err(), "Although instructions are already supposedly filtered, if one sneaks through the program should crash here and - as such - this test should fail");
+        }
+
+        #[test]
+        fn test_split_binary_address_into_type_t_s_and_b(){
+
+            let vec_of_trace_file:Vec<String> = vec![" M 20,1".to_string()];
+            let value_of_s:&String = &"2".to_string();
+            let value_of_b:&String = &"2".to_string();
+            let binary_split = split_binary_address_into_type_t_s_and_b(vec_of_trace_file, value_of_s, value_of_b).unwrap();
+
+            //20 converted to binary from hex should be 0010 0000
+            //Set bits should be 00
+            //Tag bits should be 0010 (or first 4 bits)
+            //Type of mem access should be M
+
+            assert_eq!(binary_split[0].set_bits, "00");
+            assert_eq!(binary_split[0].tag_bits, "0010");
+            assert_eq!(binary_split[0].type_of_mem_access, "M");
+        }
+
+
+        
+          
+        }
