@@ -8,32 +8,7 @@ use std::{alloc::System, env, fs::File, io::{self, BufRead, BufReader}, collecti
 #[macro_use]
 extern crate maplit;
 #[allow(unused)]
-
 mod cache;
-#[allow(unused)]
-
-fn main() {
-
-let args: Vec<String> = env::args().skip(1).collect(); //The skip here stops the executable binary being placed in the output
-
-
-if args.len() < 8 || args.len() > 9 { //The max amount of arguments (if using the verbose and or helper flag) is 9 whereas the minimum is 8
-
-    println!("Usage: [-hv] -s <s> -E <E> -b <b> -t <tracefile>"); //This just ensures the correct number of command line arguments are provided and provides the user with a usage guide if incorrect
-
-    return;
-}
-
-let index_of_s = args.iter().position(|find_s: &String| find_s == "-s").unwrap();
-#[allow(non_snake_case)] //Although I know this goes against variable naming conventions as we are dealing with a capital E I think it is justified to defy these conventions for clarity
-let index_of_E = args.iter().position(|find_E: &String| find_E == "-E").unwrap();
-let index_of_b = args.iter().position(|find_b: &String| find_b == "-b").unwrap();
-let index_of_t = args.iter().position(|find_t: &String| find_t == "-t").unwrap();
-let value_of_s: &String = &args[index_of_s + 1];
-#[allow(non_snake_case)]
-let value_of_E:&String = &args[index_of_E + 1];
-let value_of_b:&String = &args[index_of_b + 1];
-let path_to_trace:&String = &args[index_of_t + 1];
 
 
 #[allow(non_snake_case)]
@@ -58,6 +33,35 @@ fn make_file_line_separated_vector(filepath: &str) -> Vec<String>{
     }
     return vec_of_lines;
 }
+
+#[allow(unused)]
+fn main() {
+
+let args: Vec<String> = env::args().skip(1).collect(); //The skip here stops the executable binary being placed in the output
+
+
+if args.len() < 8 || args.len() > 9 { //The max amount of arguments (if using the verbose and or helper flag) is 9 whereas the minimum is 8
+
+    println!("Usage: [-hv] -s <s> -E <E> -b <b> -t <tracefile>"); //This just ensures the correct number of command line arguments are provided and provides the user with a usage guide if incorrect
+
+    return;
+}
+
+let index_of_s = args.iter().position(|find_s: &String| find_s == "-s").unwrap();
+#[allow(non_snake_case)] //Although I know this goes against variable naming conventions as we are dealing with a capital E I think it is justified to defy these conventions for clarity
+let index_of_E = args.iter().position(|find_E: &String| find_E == "-E").unwrap();
+let index_of_b = args.iter().position(|find_b: &String| find_b == "-b").unwrap();
+let index_of_t = args.iter().position(|find_t: &String| find_t == "-t").unwrap();
+let value_of_s: &String = &args[index_of_s + 1];
+#[allow(non_snake_case)]
+let value_of_E:&String = &args[index_of_E + 1];
+let value_of_b:&String = &args[index_of_b + 1];
+let path_to_trace:&String = &args[index_of_t + 1];
+
+
+
+
+
 
 
 fn convert_from_hex_to_binary(hex_address: &str) -> Result<String, &'static str>{ //The function either returns a String or an error (as handled by &'static str) Just for future reference, the reason you chose a static lifetime is so the error message/string persists for the whole time the program executes as we might need to see at the last second that one of the strings failed to convert to binary
@@ -219,21 +223,51 @@ let cache_lines: usize = value_of_E.to_string().parse().unwrap(); //columns add 
         if value_of_s == "1" && value_of_E != "1"{
            my_cache.insert_into_cache_if_fully_associative(binary.set_bits, binary.tag_bits, binary.type_of_mem_access);
         }
-        // println!("This is what the cache looks like at this stage: ");
-        // my_cache.print_array();
 
     }
 
-    // my_cache.print_array();
-
-
-
-
-    // my_cache.create_vector_with_blocks_after_tag_bits("00001111".to_string(), "1111".to_string());
-
     println!("hits:{} misses:{} evictions:{}", my_cache.cache_hits, my_cache.cache_misses, my_cache.cache_evictions);
-    
-    
 
-    // my_cache.print_array();
+
 }
+
+
+    //To follow convention I will test the main.rs file here
+
+    #[cfg(test)] //Basically tells rust to NOT compile the tests at the same time as compiling the rest of the code
+    mod tests{
+        use super::*;
+
+        #[test]
+        fn test_calculate_cache_size(){
+            let s: &String = &"2".to_string();
+            let e: &String = &"2".to_string();
+            let b: &String = &"2".to_string(); 
+            let cache_size = calculate_cache_size(s, e, b);
+            assert_eq!(cache_size, 32);
+        }
+
+        #[test]
+        fn test_make_file_line_separated_vector_valid_filepath(){
+            let line_sep_vec = make_file_line_separated_vector("src/traces/custom.trace");
+            let correct_vec = vec![" S 00602264,1", " L 00602260,4", " M 7fefe059c,4", " L 7fefe0594,4", " L 7fefe059c,4", " L 7fefe059c,4"];
+            assert_eq!(line_sep_vec, correct_vec);
+            let line_sep_vec_tested_on_instructions = make_file_line_separated_vector("src/traces/customWITHI.trace");
+            let correct_vec_2 = vec![" S 00602264,1", " L 00602260,4", " M 7fefe059c,4", " L 7fefe0594,4", " L 7fefe059c,4", " L 7fefe059c,4"]; //Should be the same as removed instructions
+            assert_eq!(line_sep_vec_tested_on_instructions, correct_vec_2);
+        }
+
+        #[test]
+        fn test_make_file_line_separated_vector_invalid_filepath(){
+            let line_sep_vec = make_file_line_separated_vector("src/traces/DOESNOTEXIST/custom.trace");
+        }
+    
+        // #[test]
+        // fn test_hex_to_binary() {
+        //     let hex = "1a3f";
+        //     let binary = convert_from_hex_to_binary(hex).unwrap();
+        //     assert_eq!(binary, "0001101000111111");
+        // }
+    
+    }
+
