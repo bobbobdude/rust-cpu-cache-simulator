@@ -30,7 +30,6 @@ impl ArrayRepresentationOfCache{
 
 impl ArrayRepresentationOfCache{
     pub fn print_hits_misses_evictions(&self){
-        //hits:4 misses:5 evictions:3 for example 
         println!("hits:{} misses:{} evictions:{}", self.cache_hits, self.cache_misses, self.cache_evictions);
 
     }
@@ -39,9 +38,7 @@ impl ArrayRepresentationOfCache{
 impl ArrayRepresentationOfCache{ 
     pub fn dmc_process(&mut self, set_bits: String, tag_bits: String, type_of_instruction: String){ //returns none if the set is not found, resulting in a certain cache miss. 
         let mut index = usize::from_str_radix(&set_bits, 2).unwrap();
-        // println!("{}", index);
         if self.two_d_array[index][1] == "empty"{
-            // println!("Gets into first if statement");
             self.cache_misses += 1;
             self.two_d_array[index][1] = tag_bits;
             if type_of_instruction == "M"{
@@ -49,7 +46,6 @@ impl ArrayRepresentationOfCache{
             }
         }
         else if self.two_d_array[index][1] != "empty"{
-            // println!("Gets into else if statement");
             if tag_bits == self.two_d_array[index][1]{
                 self.cache_hits += 1;
                 if type_of_instruction == "M"{
@@ -57,7 +53,6 @@ impl ArrayRepresentationOfCache{
                 }
             }
             else{
-                // println!("Gets into final else statement");
                 self.cache_misses += 1;
                 self.cache_evictions += 1;
                 self.two_d_array[index][1] = tag_bits;
@@ -72,7 +67,6 @@ impl ArrayRepresentationOfCache{
 impl ArrayRepresentationOfCache{
     pub fn create_two_d_array_with_index_if_dmc(&mut self){
         let size_of_set_bits = self.value_of_s_as_usize;
-        // println!("{}", num_bits)
         let amount_of_different_indexes = self.rows_or_cache_sets;
 
 
@@ -80,7 +74,6 @@ impl ArrayRepresentationOfCache{
         for i in 0..amount_of_different_indexes.try_into().unwrap(){
             create_vec_of_dec_int_to_add.push(i)
         }
-        // println!("{:?}", create_vec_of_dec_int_to_add);
 
         let mut vec_of_final_bits = vec![];
         let bits_needed = size_of_set_bits;
@@ -89,8 +82,6 @@ impl ArrayRepresentationOfCache{
             let binary_string = format!("{:0bits$b}", dec_int, bits = bits_needed.try_into().unwrap());
             vec_of_final_bits.push(binary_string);
         }
-
-        // println!("{:?}", vec_of_final_bits);
 
         let mut iterator = 0; 
 
@@ -173,8 +164,17 @@ pub fn insert_into_cache_if_fully_associative(&mut self, set_bits: String, tag_b
         self.two_d_array[0].insert(0, full_block_id.clone());
         return;
     }
-
     
 
+    }
+}
+
+impl ArrayRepresentationOfCache{
+    pub fn modify_cache_structure_for_set_associative(&mut self, value_of_s: usize){  
+        let mut vec_of_decimal_set_addresses:Vec<usize> = vec![]; 
+        for i in 0..value_of_s{
+            vec_of_decimal_set_addresses.push(i);
+        }
+        let amount_of_each_set_address = self.two_d_array.len(); 
     }
 }

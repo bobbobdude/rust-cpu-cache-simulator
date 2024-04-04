@@ -11,15 +11,6 @@ extern crate maplit;
 pub mod cache;
 
 
-#[allow(non_snake_case)]
-fn calculate_cache_size(s: &String, E:&String, b:&String) -> u32{ //This dynamically calculates how many BYTES the combined cache is
-    let int_of_s: u32= s.parse().unwrap(); //This is the amount of Sets 
-    let int_of_E: u32= E.parse().unwrap(); //This is the amount of Cache Lines per set 
-    let int_of_b: u32= b.parse().unwrap(); //This is the block offset (the amount of bits that determine which byte to take from the requested block)
-    let cache_bytes_size: u32 = (2_u32.pow(int_of_s)) * (2_u32.pow(int_of_b)) * int_of_E;
-    cache_bytes_size
-}
-
 fn make_file_line_separated_vector(filepath: &str) -> Vec<String>{
     let file = File::open(filepath).expect("Failed to open file");
     let reader = BufReader::new(file);
@@ -151,14 +142,9 @@ let value_of_E:&String = &args[index_of_E + 1];
 let value_of_b:&String = &args[index_of_b + 1];
 let path_to_trace:&String = &args[index_of_t + 1];
 
-let cache_bytes_size = calculate_cache_size(value_of_s, value_of_E, value_of_b);
 let vec_of_trace_file = make_file_line_separated_vector(path_to_trace);
 
 let mut vec_of_binary_split_memory_addresses = split_binary_address_into_type_t_s_and_b(vec_of_trace_file.clone(), value_of_s,value_of_b).unwrap();
-    //Okay so to represent the cache sets, and the amount of cache lines within those sets I have decided to create a fixed size 2d array. 
-
-
-    
 
 let cache_sets: usize = 2_usize.pow(value_of_s.parse().unwrap()); //rows
 let cache_lines: usize = value_of_E.to_string().parse().unwrap(); //columns add one as we need a column for the block stored within the cache 
@@ -166,34 +152,11 @@ let cache_lines: usize = value_of_E.to_string().parse().unwrap(); //columns add 
 
     let mut my_cache = cache::ArrayRepresentationOfCache::new(value_of_s.parse().unwrap(), value_of_E.parse().unwrap(), cache_sets, cache_lines);
 
-    // for instructions in vec_of_trace_file.clone(){
-    //     println!("{}",instructions);
-    // }
     
-    // for binary in vec_of_binary_split_memory_addresses{
-    //     let if_it_is_index_this_is_some = my_cache.is_set_in_cache(binary.set_bits.clone(), binary.tag_bits.clone());
-    //     println!("These are the set bits and tag bits we are looking for {}, {}", binary.set_bits, binary.tag_bits);
-    //     if if_it_is_index_this_is_some.is_some(){
-    //         let index_of_vector_where_set_found = if_it_is_index_this_is_some.unwrap();
-    //         my_cache.is_tag_in_cache(&binary.tag_bits.to_string(), &binary.set_bits.to_string(), index_of_vector_where_set_found);
-    //     }
-    //     println!();
-    //     my_cache.print_array();
-    // }
-
-    // for binary in vec_of_binary_split_memory_addresses{
-    //     println!("Tag bits in address: {}",binary.tag_bits);
-    //     println!("Set bits in address: {}",binary.set_bits);
-    //     my_cache.create_vector_with_blocks_after_tag_bits(binary.tag_bits, binary.set_bits);
-    // }
-
-    // for binary in vec_of_binary_split_memory_addresses{
-        
-    //     println!("Tag bits in address: {}",binary.tag_bits);
-    //     println!("Set bits in address: {}",binary.set_bits);
-
-    // }
-
+    if value_of_E == "1" {
+        my_cache.create_two_d_array_with_index_if_dmc();
+    }
+    
     if value_of_s == "1" && value_of_E != "1"{
         my_cache.modify_two_d_array_to_be_correct_rows_and_correct_col_for_fully_associative();
     }
@@ -202,35 +165,26 @@ let cache_lines: usize = value_of_E.to_string().parse().unwrap(); //columns add 
 
     for binary in vec_of_binary_split_memory_addresses{
         if value_of_E == "1"{ //This means direct mapped cache
-            my_cache.create_two_d_array_with_index_if_dmc();
             my_cache.dmc_process(binary.set_bits.clone(), binary.tag_bits.clone(), binary.type_of_mem_access.clone());
         }
-        if value_of_s == "1" && value_of_E != "1"{
+        if value_of_s == "1" && value_of_E != "1"{//Fully associative as one set
            my_cache.insert_into_cache_if_fully_associative(binary.set_bits, binary.tag_bits, binary.type_of_mem_access);
         }
-
+        if value_of_s != "1" && value_of_E != "1"{//Set associative as more than one set and more than one cache line
+            println!("This is a set associative cache");
+            //my_cache.modify_cache_structure_for_set_associative(my_cache.value_of_s_as_usize);
+        } 
     }
+
+    my_cache.print_array();
     my_cache.print_hits_misses_evictions();
-    
 
 }
-
-
     //To follow convention I will test the main.rs file here
-
     #[cfg(test)] //Basically tells rust to NOT compile the tests at the same time as compiling the rest of the code
     mod tests{
         use cache;
         use super::*;
-
-        #[test]
-        fn test_calculate_cache_size(){
-            let s: &String = &"2".to_string();
-            let e: &String = &"2".to_string();
-            let b: &String = &"2".to_string(); 
-            let cache_size = calculate_cache_size(s, e, b);
-            assert_eq!(cache_size, 32);
-        }
 
         #[test]
         fn test_make_file_line_separated_vector_valid_filepath(){
