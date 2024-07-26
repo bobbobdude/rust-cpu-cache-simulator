@@ -1,5 +1,6 @@
-# coursework-bobbobdude
-coursework-bobbobdude created by GitHub Classroom
+# Rust Cache Simulator
+
+This software aims to simulate the behaviour of a cache using tracefiles produced by Valgrind, and dependent upon whether the cache replacement policy is Direct Mapped (DMC), Fully Associative (FAC) or Set Associative (SAC), print out the correct number of Cache Misses, Hits and Evictions.
 
 ```
 coursework-bobbobdude
